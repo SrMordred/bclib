@@ -1,0 +1,15 @@
+{
+	"description": "A betterC lib",
+	"license": "MIT",
+	"authors": [
+		"Patric"
+	],
+	"copyright": "Copyright © 2019, Patric",
+	"name": "bclib",
+	"dependencies": {
+		
+	},
+	"dflags-ldc":["-enable-cross-module-inlining", "-boundscheck=off"],
+	"buildOptions": ["betterC"]
+	
+}

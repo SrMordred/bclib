@@ -1,0 +1,776 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"compo",
+				"componentsToMask\tfunction"
+			],
+			[
+				"con",
+				"concurrency\tmodule"
+			],
+			[
+				"Mutex",
+				"MutexVar\tstruct"
+			],
+			[
+				"threa",
+				"thread_jobs\tvariable"
+			],
+			[
+				"PThr",
+				"PThreadMainRun\tfunction"
+			],
+			[
+				"Task",
+				"TaskManager\tstruct"
+			],
+			[
+				"PTh",
+				"PThreadMainRun\tfunction"
+			],
+			[
+				"pthr",
+				"pthread_args\tvariable"
+			],
+			[
+				"off",
+				"offsets\tvariable"
+			],
+			[
+				"alo",
+				"allocator\tpackage"
+			],
+			[
+				"post",
+				"post_update\tvariable"
+			],
+			[
+				"MAXO",
+				"MAX_OBJECTS\tvariable"
+			],
+			[
+				"Max",
+				"MaxTemplates\tvariable"
+			],
+			[
+				"systems",
+				"systems_mask\tvariable"
+			],
+			[
+				"Com",
+				"components\tvariable"
+			],
+			[
+				"component",
+				"componentID\tfunction"
+			],
+			[
+				"eng",
+				"engineUpdate\tfunction"
+			],
+			[
+				"objectid",
+				"objects_id_pool\tvariable"
+			],
+			[
+				"object_p",
+				"objects_id_pool\tvariable"
+			],
+			[
+				"templates",
+				"templates_added\tvariable"
+			],
+			[
+				"Components",
+				"ComponentsArray\talias"
+			],
+			[
+				"btcec",
+				"bitCheckAny\tfunction"
+			],
+			[
+				"get",
+				"getTemplates\tfunction"
+			],
+			[
+				"thr",
+				"threads"
+			],
+			[
+				"new",
+				"new_template_id\tvariable"
+			],
+			[
+				"tcon",
+				"tmaincond\tvariable"
+			],
+			[
+				"tc",
+				"t1cond\tvariable"
+			],
+			[
+				"components",
+				"components_size\tvariable"
+			],
+			[
+				"r",
+				"roll\tvariable"
+			],
+			[
+				"componet",
+				"component_id\tvariable"
+			],
+			[
+				"oldtem",
+				"old_template_id\tvariable"
+			],
+			[
+				"oldte",
+				"old_template_mask\tvariable"
+			],
+			[
+				"objects",
+				"objects_template\tvariable"
+			],
+			[
+				"template",
+				"template_objects\tvariable"
+			],
+			[
+				"componetn",
+				"componentID\tfunction"
+			],
+			[
+				"tempalte",
+				"template_list\tvariable"
+			],
+			[
+				"tempa",
+				"template_list\tvariable"
+			],
+			[
+				"tem",
+				"template_id\tvariable"
+			],
+			[
+				"font",
+				"font_img\tvariable"
+			],
+			[
+				"objec",
+				"objects_template\tvariable"
+			],
+			[
+				"len",
+				"length\tfunction"
+			],
+			[
+				"otm",
+				"old_template_index\tvariable"
+			],
+			[
+				"bc",
+				"bitcheckany\tfunction"
+			],
+			[
+				"bitca",
+				"bitcheckall\tfunction"
+			],
+			[
+				"componen",
+				"component_offset\tvariable"
+			],
+			[
+				"obejc",
+				"objectAt\tfunction"
+			],
+			[
+				"bit",
+				"bitutil\tmodule"
+			],
+			[
+				"ot",
+				"objects_template\tvariable"
+			],
+			[
+				"lazy",
+				"lazyOpsRun\tfunction"
+			],
+			[
+				"aa",
+				"a_arr\tvariable"
+			],
+			[
+				"Compoent",
+				"ComponentMask\talias"
+			],
+			[
+				"Component",
+				"ComponentMask\talias"
+			],
+			[
+				"Compo",
+				"ComponentData\tstruct"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"keybi",
+				"Preferences: Key Bindings"
+			],
+			[
+				"keybin",
+				"Preferences: Key Bindings"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"comment",
+				"Toggle Block Comment"
+			],
+			[
+				"dkit",
+				"DKit: Update Import Paths"
+			],
+			[
+				"colors",
+				"Colorsublime: Install Theme"
+			],
+			[
+				"theme",
+				"UI: Select Theme"
+			],
+			[
+				"color",
+				"UI: Select Color Scheme"
+			],
+			[
+				"keyb",
+				"Preferences: Key Bindings"
+			],
+			[
+				"import",
+				"DKit: Update Import Paths"
+			],
+			[
+				"key",
+				"Preferences: Key Bindings"
+			],
+			[
+				"reload",
+				"SublimeLinter: Reload SublimeLinter and its Plugins"
+			],
+			[
+				"build",
+				"Build With: D_BUILD"
+			],
+			[
+				"restar",
+				"DKit: Restart DCD Autocompletion Server"
+			],
+			[
+				"imort",
+				"DKit: Update Import Paths"
+			],
+			[
+				"settings",
+				"Preferences: Settings"
+			],
+			[
+				"lsp",
+				"LSP: Disable Language Server in Project"
+			],
+			[
+				"enable ",
+				"LSP: Enable Language Server Globally"
+			],
+			[
+				"them",
+				"UI: Select Theme"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 458.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/patric/Desktop/bclib"
+	],
+	"file_history":
+	[
+		"/home/patric/Desktop/engine/project.sublime-",
+		"/home/patric/Desktop/engine/source/container/package.d",
+		"/home/patric/Desktop/engine/source/engine/package.d",
+		"/home/patric/Desktop/engine/source/engine/internal.d",
+		"/home/patric/Desktop/engine/source/container/array.d",
+		"/home/patric/Desktop/engine/source/container/bytearray.d",
+		"/home/patric/Desktop/engine/source/container/list.d",
+		"/home/patric/Desktop/engine/source/container/bag.d",
+		"/home/patric/Desktop/engine/source/game/sdl_keys.d",
+		"/home/patric/Desktop/engine/dub.json",
+		"/home/patric/Desktop/engine/source/concurrency/task.d",
+		"/home/patric/Desktop/engine/source/concurrency/condition_var.d",
+		"/home/patric/Desktop/engine/source/concurrency/mutex.d",
+		"/home/patric/Desktop/engine/source/concurrency/thread.d",
+		"/home/patric/Desktop/engine/source/concurrency/package.d",
+		"/home/patric/Desktop/engine/source/container/multiarray.d",
+		"/home/patric/Desktop/engine/source/app.d",
+		"/home/patric/Desktop/engine/source/container/multiarray.d-mixin-31",
+		"/home/patric/Desktop/teste.log",
+		"/home/patric/Desktop/engine/source/game/game.d",
+		"/home/patric/Desktop/engine/source/game/input.d",
+		"/home/patric/Desktop/engine/source/game/assets.d",
+		"/usr/include/dmd/phobos/std/array.d",
+		"/home/patric/Desktop/engine/source/game/types.d",
+		"/home/patric/Desktop/engine/source/components/package.d",
+		"/usr/include/dmd/phobos/std/typecons.d",
+		"/home/patric/.dub/packages/gfm-7.0.5/gfm/math/gfm/math/vector.d",
+		"/home/patric/Desktop/engine/source/app.d-mixin-750",
+		"/home/patric/Desktop/engine/source/container/dict.d",
+		"/home/patric/Desktop/engine/dscanner.ini",
+		"/home/patric/Desktop/engine/source/old",
+		"/home/patric/.config/sublime-text-3/Packages/User/D_BUILD.sublime-build",
+		"/home/patric/Desktop/work/laravel",
+		"/home/patric/Desktop/engine/source/allocator/package.d",
+		"/home/patric/Desktop/engine/source/container/string.d",
+		"/home/patric/Desktop/engine/source/app.d-mixin-190",
+		"/home/patric/Desktop/engine/source/util/bitop.d",
+		"/home/patric/Desktop/engine/source/engine/object_.d",
+		"/home/patric/Desktop/engine/source/engine/template.d",
+		"/home/patric/Desktop/engine/source/engine/component.d",
+		"/home/patric/Desktop/engine/source/engine/system.d",
+		"/home/patric/Desktop/engine/source/systems.d",
+		"/home/patric/Desktop/engine/source/allocator/sysalloc.d",
+		"/home/patric/Desktop/engine/source/engine/constants.d",
+		"/media/patric/3888D7A988D76442/Users/Patric/Desktop/mae.txt",
+		"/home/patric/Desktop/engine/source/bitutil.d",
+		"/usr/include/dmd/druntime/import/core/stdc/stdlib.d",
+		"/home/patric/Desktop/engine/source/engine/types.d",
+		"/home/patric/Desktop/engine/mixin.txt",
+		"/home/patric/Desktop/engine/main.cpp",
+		"/home/patric/Desktop/engine/core.exception.RangeError@source/app.d",
+		"/home/patric/Desktop/engine/source/component_array.d",
+		"/home/patric/.config/sublime-text-3/Packages/PlainTasks/messages/Tutorial.todo",
+		"/home/patric/Desktop/engine/TODO.todo",
+		"/home/patric/.dub/packages/derelict-sdl2-3.1.0-alpha.4/derelict-sdl2/source/derelict/sdl2/internal/gpu_types.d",
+		"/home/patric/.dub/packages/derelict-sdl2-3.1.0-alpha.4/derelict-sdl2/source/derelict/sdl2/internal/gpu_dynload.d",
+		"/home/patric/.dub/packages/derelict-sdl2-3.1.0-alpha.4/derelict-sdl2/source/derelict/sdl2/internal/gpu_dynamic.d",
+		"/home/patric/.dub/packages/derelict-sdl2-3.1.0-alpha.4/derelict-sdl2/source/derelict/sdl2/internal/gpu_static.d",
+		"/home/patric/Desktop/engine/source/engine/object.d",
+		"/home/patric/Desktop/engine/object.Error@src/rt/minfo.d",
+		"/home/patric/Desktop/engine/source/voidbuffer.d",
+		"/home/patric/Desktop/main.c",
+		"/home/patric/Desktop/engine/.dub/packages/derelict-util-3.0.0-beta.2/derelict-util/source/derelict/util/sharedlib.d",
+		"/home/patric/Desktop/engine/engine",
+		"/home/patric/Desktop/engine/.dub/build/application-debug-linux.posix-x86_64-dmd_2084-A42E93E9E44A64E6F388B4F4278C4494/engine",
+		"/home/patric/Desktop/engine/source/meta.d",
+		"/home/patric/Desktop/engine/source/es/package.d",
+		"/home/patric/Desktop/engine/source/Engine/object.d",
+		"/home/patric/.config/sublime-text-3/Packages/User/DKit.sublime-settings",
+		"/home/patric/Desktop/engine/project.sublime-project",
+		"/home/patric/Desktop/engine/source/project.sublime-project",
+		"/home/patric/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings"
+	],
+	"find":
+	{
+		"height": 26.0
+	},
+	"find_in_files":
+	{
+		"height": 102.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 39.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.SublimeLinter":
+	{
+		"height": 0.0
+	},
+	"output.SublimeLinter Messages":
+	{
+		"height": 121.0
+	},
+	"output.diagnostics":
+	{
+		"height": 234.0
+	},
+	"output.exec":
+	{
+		"height": 281.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.sftp":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "Packages/User/D_BUILD.sublime-build",
+	"project": "project.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"ap",
+				"engine/source/app.d"
+			],
+			[
+				"bytear",
+				"engine/source/container/bytearray.d"
+			],
+			[
+				"array",
+				"engine/source/container/array.d"
+			],
+			[
+				"app",
+				"engine/source/app.d"
+			],
+			[
+				"bytea",
+				"engine/source/container/bytearray.d"
+			],
+			[
+				"bytarra",
+				"engine/source/container/bytearray.d"
+			],
+			[
+				"container package",
+				"engine/source/container/package.d"
+			],
+			[
+				"thread",
+				"engine/source/concurrency/thread.d"
+			],
+			[
+				"condio",
+				"engine/source/concurrency/condition_var.d"
+			],
+			[
+				"mutex",
+				"engine/source/concurrency/mutex.d"
+			],
+			[
+				"concurrenpa",
+				"engine/source/concurrency/package.d"
+			],
+			[
+				"container packaeg",
+				"engine/source/container/package.d"
+			],
+			[
+				"multi",
+				"engine/source/container/multiarray.d"
+			],
+			[
+				"",
+				"engine/dscanner.ini"
+			],
+			[
+				"dict",
+				"engine/source/container/dict.d"
+			],
+			[
+				"old",
+				"engine/source/old"
+			],
+			[
+				"containerpackage",
+				"engine/source/container/package.d"
+			],
+			[
+				"interna",
+				"engine/source/engine/internal.d"
+			],
+			[
+				"const",
+				"engine/source/engine/constants.d"
+			],
+			[
+				"inter",
+				"engine/source/engine/internal.d"
+			],
+			[
+				"bitop",
+				"engine/source/util/bitop.d"
+			],
+			[
+				"util",
+				"engine/source/util/bitop.d"
+			],
+			[
+				"bitu",
+				"engine/source/bitutil.d"
+			],
+			[
+				"package",
+				"engine/source/engine/package.d"
+			],
+			[
+				"template",
+				"~/Desktop/engine/source/engine/template.d"
+			],
+			[
+				"interal",
+				"engine/source/engine/internal.d"
+			],
+			[
+				"enginepackage",
+				"engine/source/engine/package.d"
+			],
+			[
+				"system",
+				"engine/source/engine/system.d"
+			],
+			[
+				"engineinter",
+				"engine/source/engine/internal.d"
+			],
+			[
+				"dbuil",
+				"~/.config/sublime-text-3/Packages/User/D_BUILD.sublime-build"
+			],
+			[
+				"components",
+				"engine/source/components/package.d"
+			],
+			[
+				"object",
+				"engine/source/engine/object.d"
+			],
+			[
+				"component",
+				"engine/source/engine/component.d"
+			],
+			[
+				"appd",
+				"engine/source/app.d"
+			],
+			[
+				"compnent",
+				"engine/source/engine/component.d"
+			],
+			[
+				"bit",
+				"engine/source/bitutil.d"
+			],
+			[
+				"compoent",
+				"engine/source/component_array.d"
+			],
+			[
+				"systems",
+				"engine/source/systems.d"
+			],
+			[
+				"compontns",
+				"engine/source/components/package.d"
+			],
+			[
+				"GAME",
+				"engine/source/game/game.d"
+			],
+			[
+				"game",
+				"engine/source/game/game.d"
+			],
+			[
+				"types",
+				"engine/source/game/types.d"
+			],
+			[
+				"componts",
+				"engine/source/components/package.d"
+			],
+			[
+				"keys",
+				"engine/source/game/sdl_keys.d"
+			],
+			[
+				"input",
+				"engine/source/game/input.d"
+			],
+			[
+				"compoennts",
+				"engine/source/components/package.d"
+			],
+			[
+				"engineobject",
+				"engine/source/engine/object.d"
+			],
+			[
+				"componn",
+				"engine/source/engine/component.d"
+			],
+			[
+				"tempalte",
+				"engine/source/engine/template.d"
+			],
+			[
+				"ca",
+				"engine/source/component_array.d"
+			],
+			[
+				"compo",
+				"engine/source/engine/component.d"
+			],
+			[
+				"como",
+				"engine/source/engine/component.d"
+			],
+			[
+				"tem",
+				"engine/source/engine/template.d"
+			],
+			[
+				"bitult",
+				"engine/source/bitutil.d"
+			],
+			[
+				"com",
+				"engine/source/component_array.d"
+			],
+			[
+				"comp",
+				"engine/source/component_array.d"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 285.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
