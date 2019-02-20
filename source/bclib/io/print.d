@@ -6,7 +6,7 @@ void printl(alias IO = Stdout(), Values...)( auto ref Values values )
 {	
 	static foreach(value ; values)
 	{{
-		import bclib.traits : isAny;
+		import bclib.traits : isAny, isDArray;
 		import std.traits : isPointer;
 
 		alias Type = typeof(value);
@@ -52,6 +52,17 @@ void printl(alias IO = Stdout(), Values...)( auto ref Values values )
 		else static if(is(Type == bool))
 	    {
 			IO.put( value ? "true" : "false" );
+	    }
+	    else static if( isDArray!Type )
+	    {
+	    	printl!IO("[ ");
+	    	if( value.length )
+	    	{
+	    		foreach( i ; 0 .. value.length - 1 )
+	    			printl!IO( value[i] , ", " );
+	    	}
+	    	printl!IO( value[$-1] );
+	    	printl!IO(" ]");
 	    }
 	    else
 	    {

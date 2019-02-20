@@ -1,5 +1,7 @@
 module bclib.traits.traits;
 
+import std.traits : TemplateOf;
+
 template isAny(Value, Values...)
 {
     static if(Values.length)
@@ -18,3 +20,12 @@ template isAny(Value, Values...)
         enum isAny = false;
     }
 }
+
+enum isTemplateOf( A, alias B ) =  __traits(isSame, TemplateOf!A, B) ;
+
+enum isDArray( T ) = T.stringof[$-2 .. $] == "[]";
+
+/*
+Work with auto ref Templates
+*/
+enum isRValue(alias value) = !__traits(isRef, value);

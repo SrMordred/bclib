@@ -75,13 +75,13 @@ struct String(alias Alloc = sysAlloc)
 	{
 		if( size > len )
 		{
-			auto tmp = cast(char*)Alloc.alloc( size + 1 );
+			auto new_ptr = cast(char*)Alloc.alloc( size + 1 );
 			if(ptr)
 			{
-				tmp[0 .. len] = ptr[0 .. len];
+				new_ptr[0 .. len] = ptr[0 .. len];
 				Alloc.free(ptr);
 			}
-			ptr = tmp;
+			ptr = new_ptr;
 
 			auto spaces = size - len;
 			import core.stdc.string : memset;
@@ -106,10 +106,7 @@ struct String(alias Alloc = sysAlloc)
 		ptr[len] = '\0';
 	}
 
-	auto opOpAssign(string op, Value)(auto ref Value value) if(op =="~")
-	{	
-		put( value );
-	}
+	alias opOpAssign(string op : "~") = put;
 	
 	/*
 	OTHER
