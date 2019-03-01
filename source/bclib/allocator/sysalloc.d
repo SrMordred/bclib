@@ -15,7 +15,7 @@ struct SysAlloc
 	void* alloc(size_t size)
 	{
 		auto ptr = _malloc(size);
-		printf(" #(%d) Alloc(%d) -> %p\n", alloc_counter, size, ptr);
+		printf("#(%d) Alloc(%d) -> %p\n", alloc_counter, size, ptr);
 		alloc_counter++;
 		return ptr;
 	}

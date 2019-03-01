@@ -13,6 +13,7 @@ struct teste{
 
 	this(this)
 	{
+		print("blitting...");
 		if(ptr) print("blit");
 	}
 
@@ -26,19 +27,29 @@ import bclib.memory;
 
 import std.algorithm;
 
-extern(C)
-void main(){
+
+
+extern(C) void main(){
+
+	import bclib.memory : move;
+
+	Array!teste arr;
+
+	arr.push(teste(1));
+
+	auto t = teste.ctor;
+
+	arr.resize(4);
+	arr.resize(1);
+
+	//Array!teste arr;
+
+	//arr.push( teste(1) );
+	//auto x = teste(2);
+	//arr.push(x.move);
+
+
 	
-
-
-	Array!(int) arr;
-
-	arr.push(10,20,30);
-
-	arr.removeValue( 10 );
-
-	print(arr);
-
 
 	//import std.traits;
 	//print(typeof(arr2).stringof);

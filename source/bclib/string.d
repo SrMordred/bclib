@@ -12,37 +12,98 @@ struct String(alias Alloc = sysAlloc)
 	CTOR/BLIT/DTOR
 	*/
 
-	this(string str)
+	/*
+	ctor and put methods uses the same logic.
+	So for now i'm keeping only one code with mixin template tricks
+	*/
+	mixin template __PUT( values... )
 	{
-		ptr = cast(char*)Alloc.alloc( str.length + 1 );
-		len = str.length;
-		ptr[0 .. len] = cast(char[])str[0 .. len];
+		bool action = {
+		import bclib.memory : memCopy, memMove, blit;
+		import bclib.traits : isRValue, isTemplateOf;
+		import std.traits : TemplateOf;
+
+
+		auto new_cap = len;
+		static foreach(value ; values)
+		{{
+
+			alias Type = typeof(value);
+			pragma(msg, Type);
+			static if( 	is( Type == string ) || 
+						isTemplateOf!( Type, TemplateOf!String ) ||
+						is( type == char[] ) )
+			{
+				new_cap += value.length;
+			}
+			else static if(is(Type == char))
+			{
+				new_cap++;
+			}
+			
+		}}
+
+		auto old_len = len;
+		resize( new_cap );
+		len = old_len;
+
+		static foreach(value ; values)
+		{{
+			alias Type = typeof(value);
+
+			static if( 	is( Type == string ) || 
+						isTemplateOf!( Type, TemplateOf!String ) ||
+						is( type == char[] ) )
+			{
+				auto next_len = value.length;
+				static if( isRValue!value ){
+					memMove( ptr + len, cast(char*)value.ptr, next_len );	
+				} else {
+					memCopy( ptr + len, value.ptr, next_len );	
+					blit(ptr + len);
+				}
+				len+=next_len;
+			}
+			else static if(is(Type == char))
+			{
+				static if( isRValue!value ) {
+					memMove( ptr + len, &value );	
+				} else {
+					memCopy( ptr + len, &value );	
+					blit(ptr + len);
+				}
+
+				++len;
+			}
+		}}
 		ptr[len] = '\0';
+
+		return true;
+		}();
 	}
 
-	this(String str)
+	this( Values... )( auto ref Values values )
 	{
-		ptr = cast(char*)Alloc.alloc( str.length + 1 );
-		len = str.length;
-		ptr[0 .. len] = str[0 .. len];	
-		ptr[len] = '\0';
+		mixin __PUT!values;
 	}
 
 	this(this)
 	{
-		auto tmp = cast(char*) Alloc.alloc( len + 1 );
-		tmp[0 .. len] = ptr[0 .. len];
-		ptr = tmp;
+		import bclib.memory : memCopy;
+		auto new_ptr = cast(char*) Alloc.alloc( len + 1 );
+		memCopy(new_ptr, ptr, len);
+		ptr = new_ptr;
 		ptr[len] = '\0';
 	}
 
 	~this()
 	{
-		if(ptr)
-		{
-			Alloc.free(ptr);
-			len = 0;
-		}
+    	if(ptr)
+    	{
+    		Alloc.free(ptr);
+    		ptr = null;
+    	}
+    	len = 0;
 	}
 
 	/*
@@ -73,12 +134,14 @@ struct String(alias Alloc = sysAlloc)
 
 	void resize( size_t size )
 	{
+	import bclib.memory : memCopy;
+
 		if( size > len )
 		{
 			auto new_ptr = cast(char*)Alloc.alloc( size + 1 );
 			if(ptr)
 			{
-				new_ptr[0 .. len] = ptr[0 .. len];
+				memCopy( new_ptr, ptr, len );
 				Alloc.free(ptr);
 			}
 			ptr = new_ptr;
@@ -94,16 +157,9 @@ struct String(alias Alloc = sysAlloc)
 
 	alias length = resize;
 
-	void put(Value)(auto ref Value value)
+	void put(Values...)(auto ref Values values)
 	{
-		auto new_len        = len + value.length;
-		auto tmp            = cast(char*)Alloc.alloc(new_len + 1);
-		tmp[0 .. len]       = ptr[0 .. len];
-		tmp[len .. new_len] = value[0 .. $];
-		Alloc.free(ptr);
-		ptr = tmp;
-		len = new_len;
-		ptr[len] = '\0';
+		mixin __PUT!values;
 	}
 
 	alias opOpAssign(string op : "~") = put;
@@ -114,6 +170,11 @@ struct String(alias Alloc = sysAlloc)
 	void toIO(alias IO)()
 	{
 		IO.put(ptr[0 .. len]);
+	}
+
+	auto opBinary(string op : "~", U)( auto ref U other )
+	{
+		return String!(Alloc)( this, other );
 	}
 
 }

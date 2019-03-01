@@ -7,9 +7,9 @@ void printl(alias IO = Stdout(), Values...)( auto ref Values values )
 	static foreach(value ; values)
 	{{
 		import bclib.traits : isAny, isDArray;
-		import std.traits : isPointer;
+		import std.traits : isPointer, Unqual;
 
-		alias Type = typeof(value);
+		alias Type = Unqual!(typeof(value));
 
 		static if( is(typeof(Type.toIO)) )
 		{

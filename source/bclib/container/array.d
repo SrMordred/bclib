@@ -6,8 +6,6 @@ import bclib.io : print;
 struct Array(T, alias Alloc = sysAlloc )
 {	
 
-	import bclib.traits : isDArray, isTemplateOf;
-
 	T* ptr;
 	size_t len;
 	size_t cap;
@@ -16,13 +14,18 @@ struct Array(T, alias Alloc = sysAlloc )
 	CTOR/BLIT/DTOR
 	*/
 
-	this( Values... )( auto ref Values values )
+	/*
+	ctor and put methods uses the same logic.
+	So for now i'm keeping only one code with mixin template tricks
+	*/
+	mixin template __PUT( values... )
 	{
+		bool action = {
 		import bclib.memory : memCopy, memMove, blit;
-		import bclib.traits : isRValue;
+		import bclib.traits : isRValue, isTemplateOf, isDArray;
 		import std.traits : TemplateOf;
 
-		auto new_cap = 0;
+		auto new_cap = cap;
 		static foreach(value ; values)
 		{{
 
@@ -67,6 +70,13 @@ struct Array(T, alias Alloc = sysAlloc )
 				++len;
 			}
 		}}
+		return true;
+		}();
+	}
+
+	this( Values... )( auto ref Values values )
+	{
+		mixin __PUT!values;
 	}
 
 	this(this)
@@ -75,6 +85,7 @@ struct Array(T, alias Alloc = sysAlloc )
 		auto new_ptr = cast(T*)Alloc.alloc( T.sizeof * len );
 		memCopy( new_ptr, ptr, len );
 		blit( new_ptr, len );
+		ptr = new_ptr;
 		cap = len;
 	}
 
@@ -141,6 +152,8 @@ struct Array(T, alias Alloc = sysAlloc )
 
 	void reserve(size_t size)
 	{
+		//TODO: initialize new memory
+		//HOW? ctor method?
 		import bclib.memory : memCopy;
 		if( size > cap )
 		{
@@ -157,61 +170,28 @@ struct Array(T, alias Alloc = sysAlloc )
 
 	void resize(size_t size)
 	{
+		import bclib.memory : blit, dtor;
 
+		immutable diff = cast(int)(size - len);
+		import bclib.io;
+		if( diff > 0 )
+		{
+			if( size > cap ) reserve( size );
+			blit(ptr + len, diff);
+			len = size;
+		}
+		else if( diff < 0 )
+		{
+			dtor(ptr + diff , -diff );
+			len = size;
+		}
 	}
 
 	alias length = resize;
 
 	void put(Values...)(auto ref Values values)
 	{
-		import bclib.memory : memCopy, memMove, blit;
-		import bclib.traits : isRValue;
-		import std.traits : TemplateOf;
-
-		auto new_cap = cap;
-		static foreach(value ; values)
-		{{
-			alias Type = typeof(value);
-			static if( isDArray!Type || isTemplateOf!( Type, TemplateOf!Array ) )
-			{
-				new_cap += value.length;
-			}
-			else
-			{
-				new_cap++;
-			}
-			
-		}}
-
-		reserve( new_cap );
-
-		static foreach(value ; values)
-		{{
-			alias Type = typeof(value);
-
-			static if( isDArray!Type || isTemplateOf!( Type, TemplateOf!Array ) )
-			{
-				auto next_len = value.length;
-				static if( isRValue!value ){
-					memMove( ptr + len, value.ptr, next_len );	
-				} else {
-					memCopy( ptr + len, value.ptr, next_len );	
-					blit(ptr + len);
-				}
-				len+=next_len;
-			}
-			else
-			{
-				static if( isRValue!value ) {
-					memMove( ptr + len, &value );	
-				} else {
-					memCopy( ptr + len, &value );	
-					(ptr + len).blit;
-				}
-
-				++len;
-			}
-		}}
+		mixin __PUT!values;
 	}
 
 	alias opOpAssign(string op : "~") = put;
@@ -274,7 +254,7 @@ struct Array(T, alias Alloc = sysAlloc )
 
 	auto opBinary(string op : "~", U)( auto ref U other )
 	{
-		return Array!T( this, other );
+		return Array!(T, Alloc)( this, other );
 	}
 
 	void toIO(alias IO)()
