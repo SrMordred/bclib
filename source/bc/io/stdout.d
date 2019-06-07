@@ -1,4 +1,4 @@
-module bclib.io.stdout;
+module bc.io.stdout;
 
 struct Stdout
 {
@@ -6,20 +6,24 @@ struct Stdout
     {
     	import core.stdc.stdio : 
     	fwrite, 
-    	c_stdout = stdout,
+    	stdout,
     	fputc;
 
         static foreach(value ; values)
         {
             static if( is( typeof(value) == char) )
             {
-            	fputc(value, c_stdout);
+            	fputc(value, stdout);
             }
             else
             {
-                fwrite( value.ptr, char.sizeof, value.length, c_stdout );	
+            	import core.stdc.stdio : printf;
+            	printf("%.*s", value.length, value.ptr);
+            	//TODO: stdout bug
+                //fwrite( value.ptr, 1 , 9, stdout );	
             }
         }
     }
 }
 
+static Stdout std_out;

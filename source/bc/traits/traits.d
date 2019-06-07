@@ -1,6 +1,9 @@
-module bclib.traits.traits;
+module bc.traits.traits;
 
-import std.traits : TemplateOf;
+public import std.traits : 
+    TemplateOf,
+    hasElaborateAssign, 
+    hasElaborateCopyConstructor;
 
 template isAny(Value, Values...)
 {
@@ -21,7 +24,7 @@ template isAny(Value, Values...)
     }
 }
 
-enum isTemplateOf( A, alias B ) =  __traits(isSame, TemplateOf!A, B) ;
+enum isTemplateOf( A, alias B ) =  __traits(isSame, TemplateOf!(A), B) ;
 
 enum isDArray( T ) = T.stringof[$-2 .. $] == "[]";
 

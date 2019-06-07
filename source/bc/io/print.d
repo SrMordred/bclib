@@ -1,12 +1,13 @@
-module bclib.io.print;
+module bc.io.print;
 
-import bclib.io.stdout : Stdout;
+import bc.io.stdout;
 
-void printl(alias IO = Stdout(), Values...)( auto ref Values values )
+
+void printl(alias IO = std_out, Values...)( auto ref Values values )
 {	
 	static foreach(value ; values)
 	{{
-		import bclib.traits : isAny, isDArray;
+		import bc.traits : isAny, isDArray;
 		import std.traits : isPointer, Unqual;
 
 		alias Type = Unqual!(typeof(value));
@@ -21,7 +22,7 @@ void printl(alias IO = Stdout(), Values...)( auto ref Values values )
 		}
 		else static if( is(Type == struct) )
 		{
-			printl!IO("{ ");
+			printl!IO( Type.stringof, "{");
 			static if( Type.tupleof.length )
 			{
 				static foreach( index ; 0 .. Type.tupleof.length-1 )
@@ -46,7 +47,7 @@ void printl(alias IO = Stdout(), Values...)( auto ref Values values )
     			else
     				printl!IO(value.tupleof[$-1] );	
 			}
-			printl!IO(" }");
+			printl!IO("}");
 			
 		}
 		else static if(is(Type == bool))
@@ -55,14 +56,14 @@ void printl(alias IO = Stdout(), Values...)( auto ref Values values )
 	    }
 	    else static if( isDArray!Type )
 	    {
-	    	printl!IO("[ ");
+	    	printl!IO("[");
 	    	if( value.length )
 	    	{
 	    		foreach( i ; 0 .. value.length - 1 )
 	    			printl!IO( value[i] , ", " );
 	    	}
 	    	printl!IO( value[$-1] );
-	    	printl!IO(" ]");
+	    	printl!IO("]");
 	    }
 	    else
 	    {
@@ -86,6 +87,7 @@ void printl(alias IO = Stdout(), Values...)( auto ref Values values )
 	        import core.stdc.stdio : sprintf;  
 	        //316, maybe the max char possible (double.max)
 	        char[512] tmp;
+	        
 	        size_t length = sprintf(tmp.ptr, format , value );
 			IO.put( tmp[0 .. length] );
 	    }

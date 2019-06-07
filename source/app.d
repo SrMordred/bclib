@@ -1,76 +1,156 @@
-import bclib.io;
-import bclib.string;
-import bclib.container;
+import std.stdio : writeln;
+import bc.memory;
+import bc.container;
+import core.stdc.stdio;
 
-struct teste{
-	int ptr;
+import bc.io;
 
-	this(int v)
-	{
-		ptr = v;
-		print("ctor");
-	}
+version(D_BetterC)
+{
+	pragma(msg,"BetterC: ON");
+}
 
-	this(this)
-	{
-		print("blitting...");
-		if(ptr) print("blit");
-	}
+
+struct Teste
+{
+	int x;
+
+	this(int xx){ x = xx;}
+
+	//this(this)
+	//{
+	//	print("postblit");
+	//}
+
+	//this(ref Teste other)
+	//{
+	//	print("copy ctor");
+	//	x = other.x;
+	//}
 
 	~this()
 	{
-		if(ptr) print("dtor", ptr);
+		print("~this");
+		if(x)
+			print("DTOR");
 	}
 }
-import bclib.allocator;
-import bclib.memory;
-
-import std.algorithm;
-
-
 
 extern(C) void main(){
 
-	import bclib.memory : move;
+	import bc.container.dict;
+	import std.array : staticArray;
 
-	Array!teste arr;
+	//{
+	//	static dest = [0,0,0,0];
+	//	static from = [1,2,3,4];
 
-	arr.push(teste(1));
+	//	assign!true( dest, from );
 
-	auto t = teste.ctor;
+	//	print(dest);
+	//	print(from);
+		
+	//}
 
-	arr.resize(4);
-	arr.resize(1);
+	{
+		Teste dest;
+		Teste from = Teste(1);
 
-	//Array!teste arr;
+		assign!false(dest, from);
 
-	//arr.push( teste(1) );
-	//auto x = teste(2);
-	//arr.push(x.move);
+		print(dest);
+		print(from);
+	}
 
+	//{
+	//	static dest1 = [ Teste(), Teste() ];
+	//	static from1 = [ Teste(1), Teste(2) ];
+
+	//	assign!false( dest1, from1 );
+
+	//	print(dest1);
+	//	print(from1);
+	//}
+
+	//{
+	//	static dest1 = [ Teste(), Teste() ];
+	//	static from1 = [ Teste(1), Teste(2) ];
+
+	//	assign!false( dest1, from1 );
+
+	//	print(dest1);
+	//	print(from1);
+	//}
+
+
+	//int x = 10;
+	//add(x);
 
 	
 
+	
+	
+	//arr.push(Teste(1));
+	//Teste t = Teste(1);
+	//arr.push(t);
+
+
+
+	//auto v1 = Array!int(1,2,3);
+	//arr.push( v1 );
+
+	//print(arr);
+
+	//memcpy(&a,&b,Teste.sizeof);
+	////a.__postblit;
+	//a.__xcopyctor(b);
+
+	//a.__xdtor;
+
+	//a.opAssign( Teste() );
+
+
+
+	//Array!int arr;
+
+	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
+	//arr.push(1);
+
+	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
+	//arr.push(2);
+
+	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
+	//arr.push(3);
+	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
+	//arr.push(4);
+	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
+	//arr.push(5);
+	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
+	//arr.push(6);
+	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
+	//arr.push(7);
+
+	//foreach(v ; arr) printf(" -> %d\n", v);
+
+	//arr.push(100);
+
+	//foreach(v ;  arr[0 .. $])  printf("%d\n",v);
+
+	//printf("%d\n", arr[0]);
+
+
+	//printf("after arr\n");
 	//import std.traits;
-	//print(typeof(arr2).stringof);
+	//printf("hasElaborateAssign -> %d\n", hasElaborateAssign!Teste  );
+	//printf("hasElaborateCopyConstructor -> %d\n", hasElaborateCopyConstructor!Teste  );
+	//printf("hasElaborateDestructor -> %d\n", hasElaborateDestructor!Teste  );
+	//auto x = Teste(2);
+	//Teste b = a;
 
-	//print( __traits(isSame, TemplateOf!(typeof(arr2)), Array) );
-	
+	//b=  a;
 
 
-
-	//print(arr4);
-
-
-	//auto t = teste(1);
-	//arr.push(teste(2));
-	//auto t2 = t.move();
-
-	//arr.push(t);
-	//print(t);
-
-	//teste t;
-	//arr.push(t);
+	//arr.push( Teste() );
 
 
 
