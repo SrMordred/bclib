@@ -14,6 +14,9 @@ version(D_BetterC)
 struct Teste
 {
 	int x;
+	import bc.string;
+
+
 
 	this(int xx){ x = xx;}
 
@@ -34,6 +37,23 @@ struct Teste
 		if(x)
 			print("DTOR");
 	}
+
+	size_t hashof(){ return 0; }
+}
+
+struct R
+{
+	int opApply( scope int delegate(int ,int) fun )
+	{	
+		int result;
+        foreach(v ; 0 .. 10)
+        {
+            result = fun(v,v);
+            if(result)
+                break;
+        }
+        return result;
+	}
 }
 
 extern(C) void main(){
@@ -41,7 +61,25 @@ extern(C) void main(){
 	import bc.container.dict;
 	import std.array : staticArray;
 
-	//{
+	import std.range : ElementType;
+
+	import bc.util;
+
+	import bc.string;
+
+	
+
+
+
+	String a = "teste";
+	String b = "world";
+	b~= "teste";
+	auto c = a ~ b;
+
+	print(c);
+
+
+
 	//	static dest = [0,0,0,0];
 	//	static from = [1,2,3,4];
 
@@ -50,17 +88,7 @@ extern(C) void main(){
 	//	print(dest);
 	//	print(from);
 		
-	//}
 
-	{
-		Teste dest;
-		Teste from = Teste(1);
-
-		assign!false(dest, from);
-
-		print(dest);
-		print(from);
-	}
 
 	//{
 	//	static dest1 = [ Teste(), Teste() ];

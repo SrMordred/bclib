@@ -26,6 +26,19 @@ template isAny(Value, Values...)
 
 enum isTemplateOf( A, alias B ) =  __traits(isSame, TemplateOf!(A), B) ;
 
+template hasMember( T, Members... )
+{
+    static if( Members.length == 1 )
+        enum hasMember = mixin("is( typeof( T.init."~Members[0]~" ) )");
+    else
+        enum hasMember = hasMember!(T, Members[0]) && hasMember!(T, Members[1 .. $]);
+}
+
+template isBCArray( T )
+{
+    enum isBCArray = hasMember!( T, "ptr", "length" );
+}
+
 enum isDArray( T ) = T.stringof[$-2 .. $] == "[]";
 
 /*

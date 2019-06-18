@@ -13,9 +13,8 @@ struct Array(Type, alias allocator = sys_alloc )
 	size_t length(){ return len; }
 	size_t capacity(){ return data.length; }
 
-	alias SelfType = Array!(Type, allocator);
 	
-	this(ref return scope SelfType other)
+	this(ref Array other)
 	{
 		import std.traits : hasIndirections;
 		import bc.memory : memcpy;
@@ -41,7 +40,7 @@ struct Array(Type, alias allocator = sys_alloc )
 
 		static foreach(value ; values)
 		{{
-			mixin assign!( data.ptr + len, value );
+			assign!( isRValue!value )( data[len] , value );
 			++len;
 		}}
 	}
@@ -61,7 +60,7 @@ struct Array(Type, alias allocator = sys_alloc )
 	{
 		import bc.traits:  isRValue;
 		import std.math : nextPow2;
-		import bc.memory : assign_to;
+		import bc.memory : assign;
 
 		size_t new_len = len + Values.length;
 
@@ -70,7 +69,7 @@ struct Array(Type, alias allocator = sys_alloc )
 
 		static foreach(value ; values)
 		{{
-			mixin assign!( data[len], value );
+			assign!( isRValue!value )( data[len], value );
 			++len;
 		}}
 	}
@@ -86,7 +85,7 @@ struct Array(Type, alias allocator = sys_alloc )
 	void reserve( size_t new_cap )
 	{
 		import std.traits : hasIndirections;
-		import bc.memory : copy_to;
+		import bc.memory : assign;
 
 		//TODO:
 		//this should be decided by alloc, or not
@@ -102,7 +101,7 @@ struct Array(Type, alias allocator = sys_alloc )
 		else
 		{
 			auto new_data = _alloc!(Type[], allocator)( new_cap );	
-			data.copy_to( new_data );
+			assign(new_data, data);
 			release!(allocator)(data);
 			data = new_data;
 		}

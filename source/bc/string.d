@@ -1,181 +1,169 @@
 module bc.string;
 
-//import bclib.allocator : sysAlloc;
-//import bclib.unbug;
+import bc.memory : alloc, alloc_zero, release , sys_alloc;
 
-//struct String(alias Alloc = sysAlloc)
-//{
-//	char* ptr;
-//	size_t len;
+import bc.io : printf;
 
-//	/*
-//	CTOR/BLIT/DTOR
-//	*/
+struct String
+{
+	alias allocator = sys_alloc;
+	alias Type      = char;
+	alias SelfType  = String;
 
-//	/*
-//	ctor and put methods uses the same logic.
-//	So for now i'm keeping only one code with mixin template tricks
-//	*/
-//	mixin template __PUT( values... )
-//	{
-//		bool action = {
-//		import bclib.memory : memCopy, memMove, blit;
-//		import bclib.traits : isRValue, isTemplateOf;
-//		import std.traits : TemplateOf;
+	Type[] data;
+	size_t len;
 
 
-//		auto new_cap = len;
-//		static foreach(value ; values)
-//		{{
+	char* ptr(){ return data.ptr; }
+	size_t length(){ return len; }
+	size_t capacity(){ return data.length; }
 
-//			alias Type = typeof(value);
-//			pragma(msg, Type);
-//			static if( 	is( Type == string ) || 
-//						isTemplateOf!( Type, TemplateOf!String ) ||
-//						is( type == char[] ) )
-//			{
-//				new_cap += value.length;
-//			}
-//			else static if(is(Type == char))
-//			{
-//				new_cap++;
-//			}
-			
-//		}}
+	this(ref SelfType other)
+	{
+		import std.traits : hasIndirections;
+		import bc.memory : memcpy;
 
-//		auto old_len = len;
-//		resize( new_cap );
-//		len = old_len;
+		static if( hasIndirections!Type )  
+			alias _alloc = alloc_zero;
+		else
+			alias _alloc = alloc;
 
-//		static foreach(value ; values)
-//		{{
-//			alias Type = typeof(value);
+		immutable other_len = other.length;
 
-//			static if( 	is( Type == string ) || 
-//						isTemplateOf!( Type, TemplateOf!String ) ||
-//						is( type == char[] ) )
-//			{
-//				auto next_len = value.length;
-//				static if( isRValue!value ){
-//					memMove( ptr + len, cast(char*)value.ptr, next_len );	
-//				} else {
-//					memCopy( ptr + len, value.ptr, next_len );	
-//					blit(ptr + len);
-//				}
-//				len+=next_len;
-//			}
-//			else static if(is(Type == char))
-//			{
-//				static if( isRValue!value ) {
-//					memMove( ptr + len, &value );	
-//				} else {
-//					memCopy( ptr + len, &value );	
-//					blit(ptr + len);
-//				}
+		/*
+		need to cast because of bug
+		https://issues.dlang.org/show_bug.cgi?id=19960
+		*/
+		data = cast(Type[])_alloc!(Type[], allocator)( other.length + 1 );	
+		memcpy( data.ptr, other.ptr, other_len * Type.sizeof );
+		len = other.len;
+		data[len] = 0;
+	}
 
-//				++len;
-//			}
-//		}}
-//		ptr[len] = '\0';
+	this( Values... )( auto ref Values values )
+	{
+		import bc.traits:  isRValue;
+		import std.math : nextPow2;
+		import bc.memory : assign;
 
-//		return true;
-//		}();
-//	}
-
-//	this( Values... )( auto ref Values values )
-//	{
-//		mixin __PUT!values;
-//	}
-
-//	this(this)
-//	{
-//		import bclib.memory : memCopy;
-//		auto new_ptr = cast(char*) Alloc.alloc( len + 1 );
-//		memCopy(new_ptr, ptr, len);
-//		ptr = new_ptr;
-//		ptr[len] = '\0';
-//	}
-
-//	~this()
-//	{
-//    	if(ptr)
-//    	{
-//    		Alloc.free(ptr);
-//    		ptr = null;
-//    	}
-//    	len = 0;
-//	}
-
-//	/*
-//	RETRIEVE
-//	*/
-
-//	size_t length(){ return len; }
-//	alias capacity = length;
-
-//	auto opSlice( size_t start, size_t end )
-//	{
-//		return ptr[start .. end];
-//	}
-
-//	auto opSlice()
-//	{
-//		return ptr[0 .. len];
-//	}
-
-//	auto opDollar()
-//	{
-//		return len;
-//	}
-
-//	/*
-//	CHANGE
-//	*/
-
-//	void resize( size_t size )
-//	{
-//	import bclib.memory : memCopy;
-
-//		if( size > len )
-//		{
-//			auto new_ptr = cast(char*)Alloc.alloc( size + 1 );
-//			if(ptr)
-//			{
-//				memCopy( new_ptr, ptr, len );
-//				Alloc.free(ptr);
-//			}
-//			ptr = new_ptr;
-
-//			auto spaces = size - len;
-//			import core.stdc.string : memset;
-//			memset(ptr + len, ' ', spaces);
-
-//			len = size;
-//			ptr[len] = '\0';
-//		}
-//	}
-
-//	alias length = resize;
-
-//	void put(Values...)(auto ref Values values)
-//	{
-//		mixin __PUT!values;
-//	}
-
-//	alias opOpAssign(string op : "~") = put;
+		size_t new_cap = 0;
+		foreach( ref val ; values ) new_cap+= val.length;
+		reserve( new_cap );
 	
-//	/*
-//	OTHER
-//	*/
-//	void toIO(alias IO)()
-//	{
-//		IO.put(ptr[0 .. len]);
-//	}
+		static foreach(value ; values)
+		{{
+			assign!(isRValue!value)( data[len .. $] , value );
+			len += value.length;
+		}}
+	}
 
-//	auto opBinary(string op : "~", U)( auto ref U other )
-//	{
-//		return String!(Alloc)( this, other );
-//	}
+	~this()
+	{
+		if( data ) 
+			release!(allocator)(data);
 
-//}
-//alias Str = String!();
+		data = null;
+	}
+
+	void push( Values... )( auto ref Values values )
+	{
+		import bc.traits:  isRValue;
+		import std.math : nextPow2;
+		import bc.memory : assign;
+
+		size_t new_len = len + Values.length;
+
+		if( new_len > capacity )
+			reserve( new_len );
+
+		static foreach(value ; values)
+		{{
+			assign!(isRValue!value)( data[len .. $] , value );
+			len += value.length;
+		}}
+	}
+
+	void pop()
+	{
+		import std.traits : hasElaborateDestructor;
+		import bc.memory : dtor;
+		--len;
+		data[ len ].dtor;
+	}
+
+	void reserve( size_t new_cap )
+	{
+		import std.traits : hasIndirections;
+		import bc.memory : assign;
+
+		//TODO:
+		//this should be decided by alloc .. or not ?
+		static if( hasIndirections!Type )  
+			alias _alloc = alloc_zero;
+		else
+			alias _alloc = alloc;
+
+		if( capacity() == 0 )
+		{
+			//look bug above
+			data = cast(Type[])_alloc!(Type[], allocator)( new_cap + 1 );	
+			data[new_cap] = 0;
+		}
+		else
+		{
+			//look bug above
+			auto new_data = cast(Type[])_alloc!(Type[], allocator)( new_cap + 1 );	
+			assign(new_data, data);
+			release!(allocator)(data);
+			data = new_data;
+			data[ new_cap ] = 0;
+		}
+	}
+
+	ref front(){ return data[0]; }  
+	ref back() { return data[len-1]; }  
+
+	ref opIndex( size_t index )
+	{
+		return data[ index ];
+	}
+
+	auto opSlice()
+	{
+		return data[0 .. len];
+	}
+
+	auto opSlice( size_t start, size_t end )
+	{
+		return data[start .. end];
+	}
+
+	String opBinary(alias op = "~", T)( auto ref T other )
+	{
+		return String( this, other );
+	}
+
+	void opOpAssign( string op = "~", T )( auto ref T other )
+	{
+		push( other );
+	}
+
+	auto opDollar(){ return len; }
+
+	
+	void toIO(alias IO)()
+	{
+		import bc.io : printl;
+
+		printl!IO( cast(string)data );
+	}
+
+	
+
+}
+
+auto str(T... )( auto ref T t )
+{
+	return String(t);
+}
+

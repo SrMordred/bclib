@@ -70,11 +70,9 @@ TODO:
 void assign(alias is_r_value = false, Dest, Source )( auto ref Dest dest, auto ref Source source )
 {
 	pragma(inline, true);
+	import bc.traits : isRValue, isBCArray;
 
-	import bc.traits : isRValue;
-	import std.traits : isArray;
-
-	enum is_array   = isArray!Source;
+	enum is_array   = isBCArray!Source;
 
 	static if(is_array)
 	{
@@ -85,62 +83,66 @@ void assign(alias is_r_value = false, Dest, Source )( auto ref Dest dest, auto r
 
 	static if( is_r_value && is_array )
 	{
-		pragma(msg, "RVALUE ARRAY");
 		memcpy( dest.ptr, source.ptr, Element.sizeof * source.length );
+		static if(__traits( compiles , memset( source.ptr, 0, Element.sizeof * source.length) ))
 		memset( source.ptr, 0, Element.sizeof * source.length);
+		
 	} 
 	else static if( is_r_value && !is_array )
 	{
-		pragma(msg, "RVALUE VALUE");
 		memcpy( &dest, &source, Source.sizeof );
+		static if(__traits(compiles, memset( &source, 0, Source.sizeof ) ))
 		memset( &source, 0, Source.sizeof );
 	}
 	else static if( !is_r_value && is_array )
 	{
+
 		static if( __traits(compiles, dest[0].__ctor( source[0] ) ) )
 		{
-			pragma(msg, "LVALUE ARRAY COPYCTOR");
 
 			foreach(i, ref val ; source)
 				dest[i].__ctor( val );
 		}
 		else static if( __traits(compiles, dest[0].__xpostblit) )
 		{
-			pragma(msg, "LVALUE ARRAY POSTBLIT");
 
-			memcpy(dest.ptr, source.ptr, Source.sizeof * source.length);
+			memcpy(dest.ptr, source.ptr, Element.sizeof * source.length);
 			foreach(ref val ; dest)
 				val.__xpostblit;
 		}
 		else
 		{
-			pragma(msg, "LVALUE ARRAY");
-			memcpy(dest.ptr, source.ptr, Source.sizeof * source.length);
+			memcpy(dest.ptr, source.ptr, Element.sizeof * source.length);
 		}
+
 	}
 	else static if( !is_r_value && !is_array )
 	{
 		static if( __traits(compiles, dest.__ctor( source ) ) )
 		{
-			pragma(msg, "LVALUE VALUE COPYCTOR");
-
-			dest.__ctor( source );
+						dest.__ctor( source );
 		}
 		else static if( __traits(compiles, dest.__xpostblit) )
 		{
-			pragma(msg, "LVALUE VALUE POSTBLIT");
-
+			
 			memcpy(&dest, &source, Source.sizeof);
 			dest.__xpostblit;
 		}
 		else
 		{
-			pragma(msg, "LVALUE VALUE");
 			memcpy(&dest, &source, Source.sizeof);
 		}
 	}
 	return null;
 	}();
+}
+
+void swap(T)( auto ref T a, auto ref T b )
+{
+	T       tmp = void;
+	memcpy( &tmp, &a, T.sizeof );
+	memcpy( &a, &b , T.sizeof );
+	memcpy( &b, &tmp, T.sizeof );
 }
 
 void dtor( T )( auto ref T value )

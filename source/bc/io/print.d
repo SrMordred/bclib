@@ -61,16 +61,17 @@ void printl(alias IO = std_out, Values...)( auto ref Values values )
 	    	{
 	    		foreach( i ; 0 .. value.length - 1 )
 	    			printl!IO( value[i] , ", " );
+	    		
+	    		printl!IO( value[$-1] );
 	    	}
-	    	printl!IO( value[$-1] );
 	    	printl!IO("]");
 	    }
 	    else
 	    {
 	        static if( isAny!(Type, size_t, ulong ) )
-	            enum format = "%zu";
+	            enum format = "%Iu";
 	        else static if( is( Type == long ) )
-	            enum format = "%zd";
+	            enum format = "%Id";
 	        else static if( is( Type == uint ) )
 	            enum format = "%u";
 	        else static if( is( Type == int ) )
