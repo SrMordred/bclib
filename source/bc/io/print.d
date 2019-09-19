@@ -2,7 +2,7 @@ module bc.io.print;
 
 import bc.io.stdout;
 
-
+@trusted
 void printl(alias IO = std_out, Values...)( auto ref Values values )
 {	
 	static foreach(value ; values)
@@ -82,8 +82,12 @@ void printl(alias IO = std_out, Values...)( auto ref Values values )
 	            enum format = "%lf";
 	        else static if( is( Type == char ) )
 	            enum format = "%c";
+			else static if( is( Type == byte ) || is( Type == ubyte ) )
+	            enum format = "%x";
 	        else static if( isPointer!Type )
 	            enum format = "#%llx";
+			else
+				pragma(msg, "Type ", Type.stringof, " is not implemented!");
 
 	        import core.stdc.stdio : sprintf;  
 	        //316, maybe the max char possible (double.max)

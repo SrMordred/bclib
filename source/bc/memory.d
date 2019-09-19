@@ -1,165 +1,34 @@
 module bc.memory;
 
-public:
-	import core.stdc.stdlib : 
-		malloc,
-		calloc,
-		realloc,
-		free;
-
-	import core.stdc.string : 
-		memcpy,
-		memset;
-
 public import bc.allocator : sys_alloc;
 
-auto alloc( T, alias allocator = sys_alloc )( size_t length = 1)
+Type* malloc(alias Allocator = sys_alloc, Type)()
 {
-	import std.traits : isDynamicArray;
-	import std.range : ElementType;
-
-	static if( isDynamicArray!T )
-	{
-		alias Element = ElementType!T;
-		
-		void* ptr = allocator.malloc( Element.sizeof * length );
-		return (cast(Element*) ptr)[0 .. length];
-	}
-	else
-	{
-		return cast(T*) allocator.malloc( T.sizeof );
-	}
+	import std.traits : hasIndirections;
+	return cast(Type*) Allocator.malloc( Type.sizeof );
 }
 
-auto alloc_zero( T, alias allocator = sys_alloc )( size_t length = 1)
+Type* calloc(alias Allocator = sys_alloc, Type)()
 {
-	import std.traits : isDynamicArray;
-	import std.range : ElementType;
-
-	static if( isDynamicArray!T )
-	{
-		alias Element = ElementType!T;
-
-		void* ptr = allocator.calloc( Element.sizeof * length );
-		return (cast(Element*) ptr)[0 .. length];
-	}
-	else
-	{
-		return cast(T*) allocator.calloc( T.sizeof );
-	}
+	import std.traits : hasIndirections;
+	return cast(Type*) Allocator.calloc( Type.sizeof );
 }
 
-void release( alias allocator = sys_alloc, T )( ref T ptr )
+//TODO test if all are pointers;
+void release( alias Allocator, Types... )( auto ref Types ptrs )
 {
-	import std.traits : isDynamicArray;
-	static if( isDynamicArray!T )
-	{
-		allocator.free( ptr.ptr );
-	}
-	else
-	{
-		allocator.free( ptr );
-	}
-}
-
-/*
-TODO:
-1) memcpy may not be the fastest option every time
-2) memset must set to zero only parts that matter not the entire value/array
-*/
-void assign(alias is_r_value = false, Dest, Source )( auto ref Dest dest, auto ref Source source )
-{
-	pragma(inline, true);
-	import bc.traits : isRValue, isBCArray;
-
-	enum is_array   = isBCArray!Source;
-
-	static if(is_array)
-	{
-		alias Element = typeof( source[0] );
-	}
-
-	auto _ = (){
-
-	static if( is_r_value && is_array )
-	{
-		memcpy( dest.ptr, source.ptr, Element.sizeof * source.length );
-		static if(__traits( compiles , memset( source.ptr, 0, Element.sizeof * source.length) ))
-		memset( source.ptr, 0, Element.sizeof * source.length);
-		
-	} 
-	else static if( is_r_value && !is_array )
-	{
-		memcpy( &dest, &source, Source.sizeof );
-		static if(__traits(compiles, memset( &source, 0, Source.sizeof ) ))
-		memset( &source, 0, Source.sizeof );
-	}
-	else static if( !is_r_value && is_array )
-	{
-
-		static if( __traits(compiles, dest[0].__ctor( source[0] ) ) )
+	import std.traits : hasElaborateDestructor, PointerTarget;
+	static foreach(ptr ; ptrs)
+	{{
+		alias Type = PointerTarget!(typeof(ptr));
+		if( ptr !is null)
 		{
-
-			foreach(i, ref val ; source)
-				dest[i].__ctor( val );
+			static if( hasElaborateDestructor!( Type ) )
+			{
+				ptr.__xdtor;
+			}	
+			Allocator.free( ptr );
+			ptr = null;
 		}
-		else static if( __traits(compiles, dest[0].__xpostblit) )
-		{
-
-			memcpy(dest.ptr, source.ptr, Element.sizeof * source.length);
-			foreach(ref val ; dest)
-				val.__xpostblit;
-		}
-		else
-		{
-			memcpy(dest.ptr, source.ptr, Element.sizeof * source.length);
-		}
-
-	}
-	else static if( !is_r_value && !is_array )
-	{
-		static if( __traits(compiles, dest.__ctor( source ) ) )
-		{
-						dest.__ctor( source );
-		}
-		else static if( __traits(compiles, dest.__xpostblit) )
-		{
-			
-			memcpy(&dest, &source, Source.sizeof);
-			dest.__xpostblit;
-		}
-		else
-		{
-			memcpy(&dest, &source, Source.sizeof);
-		}
-	}
-	return null;
-	}();
-}
-
-void swap(T)( auto ref T a, auto ref T b )
-{
-	T       tmp = void;
-	memcpy( &tmp, &a, T.sizeof );
-	memcpy( &a, &b , T.sizeof );
-	memcpy( &b, &tmp, T.sizeof );
-}
-
-void dtor( T )( auto ref T value )
-{
-	import std.traits : isArray, hasElaborateDestructor;
-
-	static if( isArray!T )
-	{
-		static if( hasElaborateDestructor!( typeof(value[0]) ) )
-		{
-			foreach(ref val ; value)
-				val.__dtor;
-		}
-	}
-	else
-	{
-		static if( hasElaborateDestructor!T )
-			value.__dtor;		
-	}
+	}}
 }

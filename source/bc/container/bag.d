@@ -21,7 +21,7 @@ struct Bag(Type, alias Size)
 		import bc.traits:  isRValue;
 		import std.math : nextPow2;
 		import bc.memory : assign;
-		import bc.io;
+		import bc.io : print;
 
 		static if( Values.length > capacity )
 		{
@@ -65,7 +65,7 @@ struct Bag(Type, alias Size)
 
 	ref pop_return()
 	{
-		return data[0];
+		return data[ --len  ];
 	}
 
 	ref front(){ return data[0]; }  

@@ -1,6 +1,27 @@
 module bc.bitop;
 
-//string bit2str( T )( auto ref T value )
+import bc.string;
+
+String bit2str( T )( auto ref T value )
+{
+	import std.traits : isStaticArray;
+	import std.range : ElementType;
+
+	static if( isStaticArray!T )
+		enum BitSize = ElementType!(T).sizeof * 8;
+	else
+		enum BitSize = T.sizeof * 8;
+	char[ BitSize ] data;
+
+	auto limit = BitSize;
+	auto pos = 0;
+	while(limit--)
+	{
+		data[pos++] = value.bitcheck(limit) ? '1' : '0';
+	}
+	return String(data[0 .. BitSize]);
+}
+
 //{
 //	import std.conv:   text;
 //	import std.format: format;
@@ -28,7 +49,7 @@ module bc.bitop;
 //	return r;
 //}
 
-void bitset( T, U )(auto ref T value, auto ref U index)
+void bitset( T, U )(ref T value, ref U index)
 {
 	import std.range : ElementType;
 	import std.traits : isStaticArray;
@@ -49,7 +70,7 @@ void bitset( T, U )(auto ref T value, auto ref U index)
 	}
 }
 
-void bitclear( T, U )(auto ref T value, auto ref U index)
+void bitclear( T, U )(ref T value, ref U index)
 {
 	import std.range : ElementType;
 	import std.traits : isStaticArray;
@@ -70,7 +91,7 @@ void bitclear( T, U )(auto ref T value, auto ref U index)
 	}
 }
 
-bool bitcheck( T, U )(auto ref T value, auto ref U index)
+bool bitcheck( T, U )(ref T value, ref U index)
 {
 	import std.range : ElementType;
 	import std.traits : isStaticArray;

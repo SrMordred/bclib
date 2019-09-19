@@ -5,7 +5,7 @@ static alloc_counter = 0 ;
 
 struct SysAlloc
 {
-	import bc.memory : 
+	import core.stdc.stdlib:
 	_malloc = malloc,
 	_calloc = calloc,
 	_free   = free;

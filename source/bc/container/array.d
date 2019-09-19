@@ -1,155 +1,186 @@
 module bc.container.array;
 
-import bc.memory : alloc, alloc_zero, release , sys_alloc;
+//import bc.memory : alloc, alloc_zero, release;
+//import bc.allocator : sys_alloc, IAllocator;
+//import bc.traits : hasInterface;
 
-import bc.io : printf;
+//struct Array(Type, alias allocator = sys_alloc )
+//{
+//	static assert( hasInterface!(IAllocator, allocator), "allocator interface don't match" );
+//	Type[] data;
+//	size_t len;
 
-struct Array(Type, alias allocator = sys_alloc )
-{
-	Type[] data;
-	size_t len;
-
-	Type* ptr(){ return data.ptr; }
-	size_t length(){ return len; }
-	size_t capacity(){ return data.length; }
-
-	
-	this(ref Array other)
-	{
-		import std.traits : hasIndirections;
-		import bc.memory : memcpy;
-
-		static if( hasIndirections!Type )  
-			alias _alloc = alloc_zero;
-		else
-			alias _alloc = alloc;
-
-		immutable other_len = other.length;
-		data = _alloc!(Type[], allocator)( other.length );	
-		memcpy( data.ptr, other.ptr, other_len * Type.sizeof );
-		len = other.len;
-	}
-
-	this( Values... )( auto ref Values values )
-	{
-		import bc.traits:  isRValue;
-		import std.math : nextPow2;
-		import bc.memory : assign;
-
-		reserve( Values.length );
-
-		static foreach(value ; values)
-		{{
-			assign!( isRValue!value )( data[len] , value );
-			++len;
-		}}
-	}
-
-	~this()
-	{
-		import bc.memory : dtor;
-		dtor( data[ 0 .. len ] );
-
-		if( data ) 
-			release!(allocator)(data);
-
-		data = null;
-	}
-
-	void push( Values... )( auto ref Values values )
-	{
-		import bc.traits:  isRValue;
-		import std.math : nextPow2;
-		import bc.memory : assign;
-
-		size_t new_len = len + Values.length;
-
-		if( new_len > capacity )
-			reserve( nextPow2( new_len ) );
-
-		static foreach(value ; values)
-		{{
-			assign!( isRValue!value )( data[len], value );
-			++len;
-		}}
-	}
-
-	void pop()
-	{
-		import std.traits : hasElaborateDestructor;
-		import bc.memory : dtor;
-		--len;
-		data[ len ].dtor;
-	}
-
-	void reserve( size_t new_cap )
-	{
-		import std.traits : hasIndirections;
-		import bc.memory : assign;
-
-		//TODO:
-		//this should be decided by alloc, or not
-		static if( hasIndirections!Type )  
-			alias _alloc = alloc_zero;
-		else
-			alias _alloc = alloc;
-
-		if( capacity() == 0 )
-		{
-			data = _alloc!(Type[], allocator)( new_cap );	
-		}
-		else
-		{
-			auto new_data = _alloc!(Type[], allocator)( new_cap );	
-			assign(new_data, data);
-			release!(allocator)(data);
-			data = new_data;
-		}
-	}
-
-	ref front(){ return data[0]; }  
-	ref back() { return data[len-1]; }  
-
-	ref opIndex( size_t index )
-	{
-		return data[ index ];
-	}
-
-	auto opSlice()
-	{
-		return data[0 .. len];
-	}
-
-	auto opSlice( size_t start, size_t end )
-	{
-		return data[start .. end];
-	}
-
-	auto opDollar(){ return len; }
+//	Type* ptr(){ return data.ptr; }
+//	size_t length(){ return len; }
+//	size_t capacity(){ return data.length; }
 
 	
-	void toIO(alias IO)()
-	{
-		import bc.io : printl;
+//	this(ref Array other)
+//	{
+//		import std.traits : hasIndirections;
+//		import bc.memory : memcpy;
 
-		printl!IO("[");
-		if( len )
-		{
-			foreach(ref val ; data[0 .. len - 1])
-			{
-				printl!IO(val , ", ");
-			}
-			printl!IO(data[len-1] );	
-		}
-		printl!IO("]");
-	}
+//		static if( hasIndirections!Type )  
+//			alias _alloc = alloc_zero;
+//		else
+//			alias _alloc = alloc;
 
-}
+//		immutable other_len = other.length;
+//		data = _alloc!(Type[], allocator)( other.length );	
+//		memcpy( data.ptr, other.ptr, other_len * Type.sizeof );
+//		len = other.len;
+//	}
 
-auto array( T... )( auto ref T t )
-{
-	return Array!(T[0])(t);
-}
+//	this( Values... )( auto ref Values values )
+//	{
+//		import std.math:  nextPow2;
+//		import bc.memory: memcpy;
+
+//		reserve( Values.length );
+
+//		static foreach(value ; values)
+//		{{
+//			memcpy( &data[len], &value, Type.sizeof );
+//			++len;
+//		}}
+//	}
+
+//	~this()
+//	{
+//		import bc.memory : dtor;
+//		dtor( data[ 0 .. len ] );
+
+//		if( data ) 
+//			release!(allocator)(data);
+
+//		data = null;
+//	}
+
+//	void push( Values... )( auto ref Values values )
+//	{
+//		import bc.traits:  isRValue;
+//		import std.math : nextPow2;
+//		import bc.memory : memcpy, memset;
+
+//		size_t new_len = len + Values.length;
+
+//		if( new_len > capacity )
+//			reserve( nextPow2( new_len ) );
+
+//		static foreach(value ; values)
+//		{{
+//			memcpy( &data[len], &value, Type.sizeof );
+//			++len;
+//		}}
+
+//		static foreach(value ; values)
+//		{{
+//			static if(isRValue!value)
+//				memset( &value, 0, Type.sizeof );
+//		}}
+//	}
+
+//	void pop()
+//	{
+//		import std.traits : hasElaborateDestructor;
+//		import bc.memory : dtor;
+//		--len;
+//		data[ len ].dtor;
+//	}
+
+//	void reserve( size_t new_cap )
+//	{
+//		import std.traits : hasIndirections;
+//		import bc.memory : memcpy;
+
+//		//TODO:
+//		//this should be decided by alloc, or not
+//		static if( hasIndirections!Type )  
+//			alias _alloc = alloc_zero;
+//		else
+//			alias _alloc = alloc;
+
+//		if( capacity() == 0 )
+//		{
+//			data = _alloc!(Type[], allocator)( new_cap );	
+//		}
+//		else
+//		{
+//			auto new_data = _alloc!(Type[], allocator)( new_cap );	
+//			memcpy( new_data.ptr, data.ptr, Type.sizeof * len );
+//			release!(allocator)(data);
+//			data = new_data;
+//		}
+//	}
+
+//	ref front(){ return data[0]; }  
+//	ref back() { return data[len-1]; }  
+
+//	ref opIndex( size_t index )
+//	{
+//		return data[ index ];
+//	}
+
+//	auto opSlice()
+//	{
+//		return data[0 .. len];
+//	}
+
+//	auto opSlice( size_t start, size_t end )
+//	{
+//		return data[start .. end];
+//	}
+
+//	auto opDollar(){ return len; }
+
+	
+//	void toIO(alias IO)()
+//	{
+//		import bc.io : printl;
+
+//		printl!IO("[");
+//		if( len )
+//		{
+//			foreach(ref val ; data[0 .. len - 1])
+//			{
+//				printl!IO(val , ", ");
+//			}
+//			printl!IO(data[len-1] );	
+//		}
+//		printl!IO("]");
+//	}
+
+//}
+
+//auto array( T... )( auto ref T t )
+//{
+//	return Array!(T[0])(t);
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //{	
 

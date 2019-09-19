@@ -1,9 +1,57 @@
 module bc.traits.traits;
 
-public import std.traits : 
+import std.traits : 
     TemplateOf,
     hasElaborateAssign, 
-    hasElaborateCopyConstructor;
+    hasElaborateCopyConstructor,
+    hasElaborateDestructor;
+
+import std.traits : 
+    ReturnType,
+    Parameters,
+    ParameterIdentifierTuple;
+
+
+alias getAllMembers( alias T )                      = __traits(allMembers, T);
+alias getMember_( alias T, string Func )            = __traits( getMember, T, Func );
+alias getFunctionReturnType( alias T )              = ReturnType!( T );
+alias getFunctionReturnType( alias T, string Func)  = ReturnType!( getMember_!(T, Func) );
+alias getFunctionParamsType( alias Func )           = Parameters!Func;
+alias getFunctionParamsType( alias T, string Func ) = Parameters!( getMember_!( T, Func ) );
+alias getFunctionParamsName( alias Func )           = ParameterIdentifierTuple!Func;
+alias getFunctionParamsName( alias T, string Func ) = ParameterIdentifierTuple!( getMember_!( T, Func ) );
+
+template hasInterface( alias I, alias T )
+{
+    import std.traits : isFunction;
+
+    enum hasInterface = (){
+        bool has_interface = true;
+        static foreach( member ; getAllMembers!I )
+        {{
+            alias I_Member = getMember_!( I, member );
+            static if( isFunction!( I_Member ) )
+            {{
+                alias I_ReturnType = getFunctionReturnType!(I_Member);
+                alias I_Params     = getFunctionParamsType!(I_Member);
+
+                static if( is( typeof( getMember_!( T, member ) ) ) )  
+                {{
+                    alias T_Member     = getMember_!( T, member );
+                    alias T_ReturnType = getFunctionReturnType!(T_Member);
+                    alias T_Params     = getFunctionParamsType!(T_Member);
+
+                    static if( !is( I_ReturnType == T_ReturnType ) ) has_interface = false;
+                    static if( !is( I_Params     == T_Params ) )     has_interface = false;
+                }}
+                else has_interface = false;
+            }}
+        }}
+        return has_interface;
+    }();
+}
+
+enum isTemplateOf( T1, alias T2 ) =  __traits(isSame, TemplateOf!(T1), T2) ;
 
 template isAny(Value, Values...)
 {
@@ -24,8 +72,6 @@ template isAny(Value, Values...)
     }
 }
 
-enum isTemplateOf( A, alias B ) =  __traits(isSame, TemplateOf!(A), B) ;
-
 template hasMember( T, Members... )
 {
     static if( Members.length == 1 )
@@ -34,14 +80,19 @@ template hasMember( T, Members... )
         enum hasMember = hasMember!(T, Members[0]) && hasMember!(T, Members[1 .. $]);
 }
 
-template isBCArray( T )
-{
-    enum isBCArray = hasMember!( T, "ptr", "length" );
-}
+enum isBCArray( T ) = hasMember!( T, "ptr", "length" );
 
 enum isDArray( T ) = T.stringof[$-2 .. $] == "[]";
 
-/*
-Work with auto ref Templates
-*/
+//Work with auto ref Templates
 enum isRValue(alias value) = !__traits(isRef, value);
+
+enum hasDtor(T) = hasElaborateDestructor!T;
+
+void callDtor( Type )( ref Type value )
+{
+    static if( hasElaborateDestructor!( Type ) )
+    {
+        value.__xdtor;
+    }
+}

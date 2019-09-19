@@ -9,7 +9,12 @@
 	"dependencies": {
 		
 	},
-	"dflags-ldc":["-enable-cross-module-inlining", "-boundscheck=off"],
+	"dflags-ldc":[
+		"-enable-cross-module-inlining", 
+		"-boundscheck=off",
+		"-output-s"
+		
+	],
 	"buildOptions": ["betterC"]
 	
 }

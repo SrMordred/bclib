@@ -1,187 +1,188 @@
-import std.stdio : writeln;
-import bc.memory;
-import bc.container;
-import core.stdc.stdio;
-
 import bc.io;
+import bc.string;
 
-version(D_BetterC)
+import bc.allocator;
+import bc.memory;
+
+template error(Values...)
 {
-	pragma(msg,"BetterC: ON");
+	auto error(auto ref Values values, string file, size_t line)
+	{
+		print( file, ":" ,line , " -> ", values );
+		exit(0);
+		return null;
+	}	
 }
 
-
-struct Teste
+@trusted
+struct Box(Type, alias Allocator = sys_alloc)
 {
-	int x;
-	import bc.string;
+	Type* value;
 
+	this(Type value)
+	{	
+		import std.algorithm : moveEmplace;
+		this.value = malloc!(Allocator, Type);
+		value.moveEmplace( *this.value );
+	}
 
-
-	this(int xx){ x = xx;}
-
-	//this(this)
-	//{
-	//	print("postblit");
-	//}
-
-	//this(ref Teste other)
-	//{
-	//	print("copy ctor");
-	//	x = other.x;
-	//}
+	this(ref Box other)
+	{	
+		if( other.value !is null )
+		{
+			if( value is null )
+			{
+				value  = calloc!(Allocator, Type);
+			}
+			*value = *other.value;
+		}
+	}
 
 	~this()
 	{
-		print("~this");
-		if(x)
-			print("DTOR");
+		release!(Allocator)(value);
 	}
 
-	size_t hashof(){ return 0; }
+	auto move()
+	{
+		import std.algorithm : move_ = move;
+		return move_(this);
+	}
+
+	auto free()
+	{
+		if( value !is null )
+		{
+			release!(Allocator)(value);
+		}
+	}
+
+	auto get( string file = __FILE__, size_t line = __LINE__ )
+	{
+		if( value !is null)
+		{
+			return value;
+		}
+		return error( Box.stringof , " is null!", file, line );
+	}
 }
 
-struct R
+enum DefaultCopyCtor = `
+this(ref typeof(this) other)
 {
-	int opApply( scope int delegate(int ,int) fun )
-	{	
-		int result;
-        foreach(v ; 0 .. 10)
-        {
-            result = fun(v,v);
-            if(result)
-                break;
-        }
-        return result;
+	foreach (i, ref field; other.tupleof)
+		this.tupleof[i] = field;
+};`;
+
+@trusted
+struct Dummy
+{
+	int x;
+	this(int x)
+	{
+		this.x = x;
+		print("CTOR(",x,")");
+	}
+	this(ref Dummy other)
+	{
+		if( x )
+		{
+			print("DTOR(",x,")");
+		}
+
+		if(other.x)
+		{
+			x = other.x;
+			print("COPY_CTOR(",x,")");	
+		}
+	}
+	~this()
+	{
+		if(x)
+		{
+			print("DTOR(",x,")");
+		}
 	}
 }
 
-extern(C) void main(){
-
-	import bc.container.dict;
-	import std.array : staticArray;
-
-	import std.range : ElementType;
-
-	import bc.util;
-
-	import bc.string;
-
-	
 
 
+@safe
+void main()
+{
+    import core.stdc.stdlib;
+    import core.stdc.time;
+    import std.range;
+    import std.algorithm;
 
-	String a = "teste";
-	String b = "world";
-	b~= "teste";
-	auto c = a ~ b;
 
-	print(c);
+    Box!Dummy a = Dummy(1);
+    Box!Dummy b = Dummy(2);
+
+    (*a.get).print;
+
+    //auto z = a.get()[0 .. 10];
+
+    //release!(sys_alloc)(a.get);
 
 
 
-	//	static dest = [0,0,0,0];
-	//	static from = [1,2,3,4];
 
-	//	assign!true( dest, from );
+    
 
-	//	print(dest);
-	//	print(from);
-		
+    //auto arr = ( cast(int*) sys_alloc.malloc( 4 * 10 ) )[0 .. 5];
 
+    //arr[0] = 0;
+    //arr[1] = 1;
+    //arr[2] = 2;
+    //arr[3] = 3;
+    //arr[4] = 4;
 
-	//{
-	//	static dest1 = [ Teste(), Teste() ];
-	//	static from1 = [ Teste(1), Teste(2) ];
+    //Ptr!(int[]) ptr;
 
-	//	assign!false( dest1, from1 );
+    //Ptr!(int[]) ptr2 = ptr;
 
-	//	print(dest1);
-	//	print(from1);
-	//}
+    
 
-	//{
-	//	static dest1 = [ Teste(), Teste() ];
-	//	static from1 = [ Teste(1), Teste(2) ];
+    //print(arr);
+    //print(ptr.data);
 
-	//	assign!false( dest1, from1 );
+    //print(*a.value.data, " - " , *b.value.data);
 
-	//	print(dest1);
-	//	print(from1);
-	//}
+    //a = b;
 
+    //c = d;
 
-	//int x = 10;
-	//add(x);
+    //Ptr!Data c;
 
-	
+    //auto cc = Data(40);
 
-	
-	
-	//arr.push(Teste(1));
-	//Teste t = Teste(1);
-	//arr.push(t);
+    //c = cc.move;
 
 
 
-	//auto v1 = Array!int(1,2,3);
-	//arr.push( v1 );
+    //a = Data(20);
 
-	//print(arr);
+    //Ptr!Data b = Data(11);
 
-	//memcpy(&a,&b,Teste.sizeof);
-	////a.__postblit;
-	//a.__xcopyctor(b);
-
-	//a.__xdtor;
-
-	//a.opAssign( Teste() );
+    //auto c = b.move;
 
 
+    //(*a.get).print;
 
-	//Array!int arr;
-
-	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
-	//arr.push(1);
-
-	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
-	//arr.push(2);
-
-	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
-	//arr.push(3);
-	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
-	//arr.push(4);
-	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
-	//arr.push(5);
-	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
-	//arr.push(6);
-	//printf(" len( %d ) cap( %d ) \n", arr.length, arr.capacity);
-	//arr.push(7);
-
-	//foreach(v ; arr) printf(" -> %d\n", v);
-
-	//arr.push(100);
-
-	//foreach(v ;  arr[0 .. $])  printf("%d\n",v);
-
-	//printf("%d\n", arr[0]);
+    //auto a2 = *a.get;
 
 
-	//printf("after arr\n");
-	//import std.traits;
-	//printf("hasElaborateAssign -> %d\n", hasElaborateAssign!Teste  );
-	//printf("hasElaborateCopyConstructor -> %d\n", hasElaborateCopyConstructor!Teste  );
-	//printf("hasElaborateDestructor -> %d\n", hasElaborateDestructor!Teste  );
-	//auto x = Teste(2);
-	//Teste b = a;
+//   	for (auto __rangeCopy = r;
+//     !__rangeCopy.empty;
+//     __rangeCopy.popFront())
+// {
+    
+//    // Loop body...
+//}
+ //  	print(r);
 
-	//b=  a;
-
-
-	//arr.push( Teste() );
-
-
-
+    //x.match!(ok => print(ok), err=>print(""));
 
 
 }
