@@ -1,9 +1,9 @@
-module bc.allocator.sysalloc;
+module bc.allocator.default_alloc;
 
 
 static alloc_counter = 0 ;
 
-struct SysAlloc
+struct DefaultAllocator
 {
 	import core.stdc.stdlib:
 	_malloc = malloc,
@@ -36,4 +36,4 @@ struct SysAlloc
 	}
 }
 
-SysAlloc sys_alloc;
+DefaultAllocator default_alloc;

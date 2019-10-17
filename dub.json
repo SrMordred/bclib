@@ -6,15 +6,13 @@
 	],
 	"copyright": "Copyright © 2019, Patric",
 	"name": "bclib",
+	
 	"dependencies": {
-		
 	},
 	"dflags-ldc":[
 		"-enable-cross-module-inlining", 
-		"-boundscheck=off",
-		"-output-s"
-		
+		"-boundscheck=off"
 	],
-	"buildOptions": ["betterC"]
+	"buildOptions": []
 	
 }

@@ -1,4 +1,4 @@
-module adt;
+module bc.adt;
 
 struct ADT(Types...)
 {
@@ -33,6 +33,8 @@ struct ADT(Types...)
             tag = index;
         }
     }
+
+
 
     auto match(Visitors...)()
     {
@@ -78,6 +80,7 @@ struct ADT(Types...)
         }
     }
 
+    //get or exit
     auto get(Type)()
     {
         import std.meta : staticIndexOf;
@@ -90,14 +93,6 @@ struct ADT(Types...)
             return Type.init;
     }
 
-    auto unsafeGet(Type)()
-    {
-        import std.meta : staticIndexOf;
-
-        enum TypeIndex = staticIndexOf!(Type, InternalTypes);
-        //print(values[1]);
-    	return values[TypeIndex];
-    }
     auto isType(Type)()
     {
         import std.meta : staticIndexOf;
@@ -107,93 +102,93 @@ struct ADT(Types...)
     }
 }
 
-struct TSome(T)
-{
-    private T value;
-    alias value this;
-}
+//struct TSome(T)
+//{
+//    private T value;
+//    alias value this;
+//}
 
-auto Some(T)(T value)
-{
-    return value;
-}
+//auto Some(T)(T value)
+//{
+//    return value;
+//}
 
-struct TNone
-{
-}
+//struct TNone
+//{
+//}
 
-auto None()
-{
-    return TNone();
-}
+//auto None()
+//{
+//    return TNone();
+//}
 
-struct Maybe(T)
-{
-    ADT!(T, TNone) value;
-    alias value this;
+//struct Maybe(T)
+//{
+//    ADT!(T, TNone) value;
+//    alias value this;
 
-    this(T)(T value)
-    {
-        this.value = typeof(this.value)(value);
-    }
+//    this(T)(T value)
+//    {
+//        this.value = typeof(this.value)(value);
+//    }
 
-    static Some(T value)
-    {
-        return Maybe(value);
-    }
+//    static Some(T value)
+//    {
+//        return Maybe(value);
+//    }
 
-    static None()
-    {
-        return Maybe(TNone());
-    }
-}
+//    static None()
+//    {
+//        return Maybe(TNone());
+//    }
+//}
 
-auto Ok(T)(T value)
-{
-    return value;
-}
+//auto Ok(T)(T value)
+//{
+//    return value;
+//}
 
-struct TErr(T)
-{
-    private T value;
-    alias value this;
+//struct TErr(T)
+//{
+//    private T value;
+//    alias value this;
 
-    @property 
-    auto teste(){return 1;}
-}
+//    @property 
+//    auto teste(){return 1;}
+//}
 
-auto Err(T)(T value)
-{
-    return TErr!(T)(value);
-}
+//auto Err(T)(T value)
+//{
+//    return TErr!(T)(value);
+//}
 
-struct Result(OK, E)
-{
-    ADT!(OK, TErr!E) value;
-    alias value this;
+//struct Result(OK, E)
+//{
+//    ADT!(OK, TErr!E) value;
+//    alias value this;
 
-    this(T)(T value)
-    {
-        this.value = typeof(this.value)(value);
-    }
+//    this(T)(T value)
+//    {
+//        this.value = typeof(this.value)(value);
+//    }
 
-    static Ok(T)(T value)
-    {
-        return Result(value);
-    }
+//    static Ok(T)(T value)
+//    {
+//        return Result(value);
+//    }
 
-    static Err(T)(T value)
-    {
-        return Result(TErr!(T)(value));
-    }
+//    static Err(T)(T value)
+//    {
+//        return Result(TErr!(T)(value));
+//    }
 
-    bool empty = false;
+//    bool empty = false;
 
-    auto front(){
-    	print( value.unsafeGet!(OK) );
-    	return value.unsafeGet!(OK);
-    }
-    auto popFront(){
-    	empty = true;
-    }
-}
+//    auto front(){
+//    	print( value.unsafeGet!(OK) );
+//    	return value.unsafeGet!(OK);
+//    }
+//    auto popFront(){
+//    	empty = true;
+//    }
+//}
