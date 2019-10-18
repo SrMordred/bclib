@@ -1,0 +1,9 @@
+[
+	{
+		"kind": "module",
+		"file": "source\\bc\\memory.d",
+		"members": [],
+		"comment": " This module provides an `Array` type with deterministic memory usage not\n reliant on the GC, as an alternative to the built-in arrays.\n\n This module is a submodule of $(MREF std, container).\n\n Source: $(PHOBOSSRC std/container/array.d)\n\n Copyright: 2010- Andrei Alexandrescu. All rights reserved by the respective holders.\n\n License: Distributed under the Boost Software License, Version 1.0.\n (See accompanying file LICENSE_1_0.txt or copy at $(HTTP\n boost.org/LICENSE_1_0.txt)).\n\n Authors: $(HTTP erdani.com, Andrei Alexandrescu)\n\n $(SCRIPT inhibitQuickIndex = 1;)\n",
+		"name": "bc.memory"
+	}
+]

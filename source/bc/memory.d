@@ -2,31 +2,39 @@ module bc.memory;
 
 public import bc.allocator : default_alloc;
 
-Type* malloc(alias Allocator = sys_alloc, Type)()
+auto malloc(Type, alias Allocator = default_alloc)( const size_t size = 1 )
 {
-	import std.traits : hasIndirections;
-	return cast(Type*) Allocator.malloc( Type.sizeof );
+	import std.traits : isArray;
+	import std.range : ElementType;
+
+	static if( isArray!Type )   
+	{
+		alias Element = ElementType!Type;
+		return ( cast(Element*) Allocator.malloc( Element.sizeof * size ) )[0 .. size];
+	}
+	else
+	{
+		return cast(Type*) Allocator.malloc( Type.sizeof );
+	}
 }
 
-Type[] malloc(alias Allocator = sys_alloc, Type : Type[])( const size_t size )
+auto calloc(Type, alias Allocator = default_alloc)( const size_t size = 1 )
 {
-	import std.traits : hasIndirections;
-	return ( cast(Type*) Allocator.malloc( Type.sizeof * size ) )[0 .. size];
+	import std.traits : isArray;
+	import std.range : ElementType;
+
+	static if( isArray!Type )   
+	{
+		alias Element = ElementType!Type;
+		return ( cast(Element*) Allocator.calloc( Element.sizeof * size ) )[0 .. size];
+	}
+	else
+	{
+		return cast(Type*) Allocator.calloc( Type.sizeof );
+	}
 }
 
-Type* calloc(alias Allocator = sys_alloc, Type)()
-{
-	import std.traits : hasIndirections;
-	return cast(Type*) Allocator.calloc( Type.sizeof );
-}
-
-Type[] calloc(alias Allocator = sys_alloc, Type : Type[])( const size_t size )
-{
-	import std.traits : hasIndirections;
-	return ( cast(Type*) Allocator.calloc( Type.sizeof * size ) )[0 .. size];
-}
-
-void release( alias Allocator, Type )( auto ref Type* value )
+void free( alias Allocator, Type )( auto ref Type* value )
 {
 	import std.traits : 
 		hasElaborateDestructor;
@@ -71,4 +79,27 @@ void memZero( Type  )( Type[] slice )
 {
 	import core.stdc.string : memset;
 	memset(slice.ptr, 0, Type.sizeof * slice.length);
+}
+
+void copyTo( Type )( Type source, Type target )  
+{
+	import std.traits : isPointer, isArray;
+	import std.range : ElementType;
+	import core.stdc.string : memcpy;
+
+	static if( isPointer!Type )
+		memcpy( target, source, Type.sizeof );
+	else static if( isArray!Type )
+		memcpy( target.ptr, source.ptr, ElementType!(Type).sizeof * source.length );
+	else
+		error( "'memCopy' arguments must be both pointers or arrays." );
+
+}
+
+void assignAllTo( Type )( Type[] source, Type[] target )
+{
+	foreach(index ; 0 .. source.length)
+	{
+		target[index] = source[index];
+	}
 }

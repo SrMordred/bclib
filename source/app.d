@@ -4,63 +4,86 @@ import bc.string;
 import bc.allocator;
 import bc.memory;
 
-template error(Values...)
+auto error(Values...)(auto ref Values values)
 {
-	auto error(auto ref Values values, string file, size_t line)
-	{
-		print(file, ":", line, " -> ", values);
-		exit(0);
-		return null;
-	}
+	print(values);
+	exit(0);
+	return null;
 }
 
 @trusted struct Box(Type, alias Allocator = default_alloc)
 {
+	
 	import std.traits : isArray, Select;
 	import std.range : ElementType;
 
 	alias IsArray = isArray!Type;
 
-	Select!( IsArray , Type, Type* ) data;
+	alias DataType = Select!( IsArray , Type, Type* );
+
+	DataType data;
 
 	this(Type value)
 	{
 		import std.algorithm : moveEmplace, moveEmplaceAll;
+		import bc.memory : malloc;
 
 		static if( IsArray )
 		{
-			data = malloc!(Allocator, Type)( value.length );
+			data = malloc!(Type, Allocator)( value.length );
 			value.moveEmplaceAll(data);
 		}
 		else
 		{
-			data = malloc!(Allocator, Type);
+			data = malloc!(Type, Allocator);
 			value.moveEmplace(*data);			
 		}
 	}
 
-	this(ref Box other)
-	{
-		//if (other.ptr !is null)
-		//{
-		//	if (ptr is null)
-		//	{
-		//		ptr = calloc!(Allocator, Type);
-		//	}
-		//	*ptr = *other.ptr;
-		//}
+
+	@disable this(this);
+	/*
+		Nice discovery:
+		Since copy is disable, this only work with rvalues
+		variable = box( value ); //fine
+		var1 = var2; //nop!
+	*/
+	void opAssign( Box other )
+	{	
+		import std.algorithm : moveEmplace;
+		if( data !is null ) free();
+		other.moveEmplace( this );
 	}
 
-	void opAssign(Type_ : Type)(Type_ value)
+	ref opUnary( string op: "*")()
 	{
-		import std.algorithm : move;
+		static if( IsArray )   return data;
+		else return *data;
+	}
 
-		//value.move(*ptr);
+	Box dup()
+	{
+		static if( IsArray )
+		{
+			import std.algorithm : move;
+			import bc.memory : assignAllTo;
+
+			auto new_data = calloc!(Type, Allocator)( data.length );
+			data.assignAllTo( new_data );
+
+			Box!( Type, Allocator ) new_box;
+			new_box.data = new_data;
+			return new_box;
+		}
+		else
+			return Box!( Type, Allocator )( *data );
 	}
 
 	~this()
 	{
-		release!(Allocator)( data );
+		import bc.memory : free;
+
+		free!(Allocator)( data );
 	}
 
 	auto move()
@@ -72,10 +95,9 @@ template error(Values...)
 
 	auto free()
 	{
+		import bc.memory : _free = free;
 		if (data !is null)
-		{
-			release!(Allocator)(data);
-		}
+			_free!(Allocator)(data);
 	}
 
 	auto releasePtr()
@@ -84,17 +106,17 @@ template error(Values...)
 		return data;
 	}
 
-	ref get(string file = __FILE__, size_t line = __LINE__)
+	ref get()
 	{
-		//if (ptr !is null)
-		//{
-		//	return *ptr;
-		//}
-		error(Box.stringof, " is null!", file, line);
+		if (data !is null)
+		{
+			static if( IsArray )   return data;
+			else return *data;
+		}
+			
+		error(Box.stringof, " is null!");
 		assert(0);
-		//static immutable unreachable = Type.init;
-		//return unreachable;
-	}
+	}			
 }
 
 auto box(Type, alias Allocator = default_alloc)(auto ref Type value)
@@ -162,26 +184,27 @@ void main()
 	import std.algorithm;
 	import std.array;
 
-	//auto a = Dummy(1).asBox;
 
-	//auto x = [Dummy(1), Dummy(2)].staticArray;
+	//alias dummy_arr = Dummy[2];
+	import bc.memory;
 
-	//auto box1 = box( Dummy(1) );
-	import std.traits : Select;
+	/*Box!(Dummy[]) box1 = [Dummy(1), Dummy(2)];
+	auto box2 = box1.dup;
 
-	template TypeSelect( alias condition, if_true, if_false )
-	{
-		static if( condition )
-			alias TypeSelect = if_true;
-		else
-			alias TypeSelect = if_false;
-	}
+	print(box1.data);
+	print(box2.data);*/
 
-	Select!(false, void, void*) ptr;
+	Box!(int) a;
 
-	alias dummy_arr = Dummy[2];
+	a =  box(100);
 
-	Box!(Dummy[]) box1 = [Dummy(1), Dummy(2)];
+
+	//auto box1 = Dummy(2).box;
+
+	//auto box2 = box1.dup;
+	
+	//print(*box1.data);
+	//print(*box2.data);
 
 
 	//v[0] = 0;
@@ -241,3 +264,4 @@ void main()
 	//x.match!(ok => print(ok), err=>print(""));
 
 }
+

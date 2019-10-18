@@ -11,7 +11,7 @@
 	},
 	"dflags-ldc":[
 		"-enable-cross-module-inlining", 
-		"-boundscheck=off"
+		"-boundscheck=off",
 	],
 	"buildOptions": []
 	
