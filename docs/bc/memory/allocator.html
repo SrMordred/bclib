@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Module bc.memory.allocator</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">bc
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">memory
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../../bc/memory/allocator.html">allocator</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Module bc.memory.allocator</h1><p>This module provides a basic allocator that implements <code class="lang-d"><span class="pln">malloc</span><span class="pun">, </span><span class="pln">calloc and free<wbr/></span><span class="pun">.</span></code>
+</p><section><p>Also set a global variable called <code class="lang-d"><a href="../../bc/memory/allocator/default_alloc.html"><span class="pln">default_alloc</span></a></code> that is used as the default allocator for
+	all the lib.
+</p>
+
+<p>	A basic allocator must have this signature:
+</p>
+<pre class="code"><code class="lang-d"><span class="kwd">struct </span><span class="typ">IAllocator
+</span><span class="pun">{
+	</span><span class="typ">void</span><span class="pun">* </span><span class="pln">malloc</span><span class="pun">(</span><span class="pln">size_t</span><span class="pun">);
+	</span><span class="typ">void</span><span class="pun">* </span><span class="pln">calloc</span><span class="pun">(</span><span class="pln">size_t</span><span class="pun">);
+	</span><span class="typ">void </span><span class="pln">free</span><span class="pun">(</span><span class="typ">void</span><span class="pun">*);
+}</span></code></pre>
+</section>
+
+			<section><section><h2>Example</h2>
+
+<pre class="code"><code class="lang-d"><span class="kwd">struct </span><span class="typ">LogAllocator
+</span><span class="pun">{
+    	</span><span class="kwd">import </span><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">stdc<wbr/></span><span class="pun">.</span><span class="pln">stdlib </span><span class="pun">: 
+    		</span><span class="pln">_malloc </span><span class="pun">= </span><span class="pln">malloc</span><span class="pun">,
+    		</span><span class="pln">_calloc </span><span class="pun">= </span><span class="pln">calloc</span><span class="pun">,
+    		</span><span class="pln">_free </span><span class="pun">= </span><span class="pln">free</span><span class="pun">;
+	</span><span class="kwd">import </span><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">stdc<wbr/></span><span class="pun">.</span><span class="pln">stdio </span><span class="pun">: </span><span class="pln">printf</span><span class="pun">;
+
+	</span><span class="typ">void</span><span class="pun">* </span><span class="pln">malloc</span><span class="pun">(</span><span class="pln">size_t size </span><span class="pun">){
+		</span><span class="pln">printf</span><span class="pun">(</span><span class="str">"Malloc : (%d)\n"</span><span class="pun">, </span><span class="pln">size</span><span class="pun">);
+		</span><span class="kwd">return </span><span class="pln">_malloc</span><span class="pun">( </span><span class="pln">size </span><span class="pun">);
+	}
+	</span><span class="typ">void</span><span class="pun">* </span><span class="pln">calloc</span><span class="pun">(</span><span class="pln">size_t size</span><span class="pun">){
+		</span><span class="pln">printf</span><span class="pun">(</span><span class="str">"Calloc : (%d)\n"</span><span class="pun">, </span><span class="pln">size</span><span class="pun">);
+		</span><span class="kwd">return </span><span class="pln">_calloc</span><span class="pun">( </span><span class="pln">size </span><span class="pun">);
+	}
+	</span><span class="typ">void </span><span class="pln">free</span><span class="pun">(</span><span class="typ">void</span><span class="pun">* </span><span class="pln">ptr</span><span class="pun">){
+		</span><span class="pln">_free</span><span class="pun">(</span><span class="pln">ptr</span><span class="pun">);
+		</span><span class="pln">printf</span><span class="pun">(</span><span class="str">"Free : (%p)\n"</span><span class="pun">, </span><span class="pln">ptr</span><span class="pun">);
+	}
+}
+
+</span><span class="kwd">auto </span><span class="pln">log_allocator </span><span class="pun">= </span><span class="typ">LogAllocator</span><span class="pun">();
+</span><span class="kwd">auto </span><span class="pln">buffer        </span><span class="pun">= </span><span class="pln">log_allocator<wbr/></span><span class="pun">.</span><span class="pln">malloc</span><span class="pun">(</span><span class="lit">100</span><span class="pun">);
+</span><span class="pln">log_allocator<wbr/></span><span class="pun">.</span><span class="pln">free</span><span class="pun">(</span><span class="pln">buffer</span><span class="pun">);
+</span></code></pre>
+</section>
+</section>
+			<section>
+				<h2>Structs</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="DefaultAllocator" class="public" href="../../bc/memory/allocator/DefaultAllocator.html">DefaultAllocator</a>
+							</code>
+						</td>
+						<td>Basic Default Allocator
+</td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Global variables</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a id="default_alloc" class="public" href="../../bc/memory/allocator/default_alloc.html">
+								<code>default_alloc</code>
+							</a>
+						</td>
+						<td>
+							<code class="prettyprint lang-d"><a href="../../bc/memory/allocator/DefaultAllocator.html"><span class="typ">DefaultAllocator</span></a></code>
+						</td>
+						<td>global variable that are used by default on implementations that require an allocator.
+</td>
+					</tr>
+				</table>
+			</section>
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

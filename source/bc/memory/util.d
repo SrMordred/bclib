@@ -1,6 +1,6 @@
-module bc.memory;
+module bc.memory.util;
 
-public import bc.allocator : default_alloc;
+import bc.memory.allocator : default_alloc;
 
 auto malloc(Type, alias Allocator = default_alloc)( const size_t size = 1 )
 {
@@ -92,7 +92,7 @@ void copyTo( Type )( Type source, Type target )
 	else static if( isArray!Type )
 		memcpy( target.ptr, source.ptr, ElementType!(Type).sizeof * source.length );
 	else
-		error( "'memCopy' arguments must be both pointers or arrays." );
+		error( "'copyTo' arguments must be both pointers or arrays." );
 
 }
 

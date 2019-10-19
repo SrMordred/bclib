@@ -1,9 +1,77 @@
 [
 	{
 		"kind": "module",
-		"file": "source\\bc\\memory.d",
-		"members": [],
-		"comment": " This module provides an `Array` type with deterministic memory usage not\n reliant on the GC, as an alternative to the built-in arrays.\n\n This module is a submodule of $(MREF std, container).\n\n Source: $(PHOBOSSRC std/container/array.d)\n\n Copyright: 2010- Andrei Alexandrescu. All rights reserved by the respective holders.\n\n License: Distributed under the Boost Software License, Version 1.0.\n (See accompanying file LICENSE_1_0.txt or copy at $(HTTP\n boost.org/LICENSE_1_0.txt)).\n\n Authors: $(HTTP erdani.com, Andrei Alexandrescu)\n\n $(SCRIPT inhibitQuickIndex = 1;)\n",
-		"name": "bc.memory"
+		"file": "source\\bc\\memory\\allocator.d",
+		"members": [
+			{
+				"kind": "struct",
+				"line": 53,
+				"char": 1,
+				"members": [
+					{
+						"parameters": [
+							{
+								"deco": "m",
+								"name": "size"
+							}
+						],
+						"line": 63,
+						"kind": "function",
+						"originalType": "void*(size_t size)",
+						"char": 11,
+						"name": "malloc",
+						"deco": "FmZPv",
+						"endchar": 5,
+						"endline": 69,
+						"comment": "\tAllocate memory\n\tParams: size = Size in bytes of memory to be allocated\n\tReturns: Pointer to new allocated memory\n"
+					},
+					{
+						"parameters": [
+							{
+								"deco": "m",
+								"name": "size"
+							}
+						],
+						"line": 76,
+						"kind": "function",
+						"originalType": "void*(size_t size)",
+						"char": 11,
+						"name": "calloc",
+						"deco": "FmZPv",
+						"endchar": 5,
+						"endline": 82,
+						"comment": "\tAllocate zeroed memory\n\tParams: size = Size in bytes of memory to be allocated\n\tReturns: Pointer to new allocated memory\n"
+					},
+					{
+						"parameters": [
+							{
+								"deco": "Pv",
+								"name": "ptr"
+							}
+						],
+						"line": 88,
+						"kind": "function",
+						"char": 10,
+						"name": "free",
+						"deco": "FPvZv",
+						"endchar": 5,
+						"endline": 93,
+						"comment": "\tFree memory\n\tParams: ptr = Pointer to the memory address to be freed\n"
+					}
+				],
+				"comment": "\tBasic Default Allocator\n",
+				"name": "DefaultAllocator"
+			},
+			{
+				"kind": "variable",
+				"line": 97,
+				"char": 18,
+				"deco": "S2bc6memory9allocator16DefaultAllocator",
+				"comment": "global variable that are used by default on implementations that require an allocator.\n",
+				"name": "default_alloc"
+			}
+		],
+		"comment": "\tThis module provides a basic allocator that implements `malloc, calloc and free.`\n\n\tAlso set a global variable called `default_alloc` that is used as the default allocator for\n\tall the lib.\n\n\tA basic allocator must have this signature:\n\t---\nstruct IAllocator\n{\n\tvoid* malloc(size_t);\n\tvoid* calloc(size_t);\n\tvoid free(void*);\n}\n\t---\nExample:\n$(DDOX_UNITTEST_HEADER __unittest_L20_C1)\n---\nstruct LogAllocator\n{\n    \timport core.stdc.stdlib : \n    \t\t_malloc = malloc,\n    \t\t_calloc = calloc,\n    \t\t_free = free;\n\timport core.stdc.stdio : printf;\n\n\tvoid* malloc(size_t size ){\n\t\tprintf(\"Malloc : (%d)\\n\", size);\n\t\treturn _malloc( size );\n\t}\n\tvoid* calloc(size_t size){\n\t\tprintf(\"Calloc : (%d)\\n\", size);\n\t\treturn _calloc( size );\n\t}\n\tvoid free(void* ptr){\n\t\t_free(ptr);\n\t\tprintf(\"Free : (%p)\\n\", ptr);\n\t}\n}\n\nauto log_allocator = LogAllocator();\nauto buffer        = log_allocator.malloc(100);\nlog_allocator.free(buffer);\n\n---\n$(DDOX_UNITTEST_FOOTER __unittest_L20_C1)\n",
+		"name": "bc.memory.allocator"
 	}
 ]

@@ -24,10 +24,16 @@ $('#symbolSearchPane').show();</script>
 					<div class="package ">bc
 					</div>
 			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">memory
+					</div>
+			<ul class="tree-view">
 				<li>
 					<div class="module ">
-						<a href="./bc/memory.html">memory</a>
+						<a href="./bc/memory/allocator.html">allocator</a>
 					</div>
+				</li>
+			</ul>
 				</li>
 			</ul>
 				</li>
@@ -42,11 +48,10 @@ $('#symbolSearchPane').show();</script>
 				</tr>
 			<tr>
 				<td>
-					<a href="./bc/memory.html">bc.memory</a>
+					<a href="./bc/memory/allocator.html">bc.memory.allocator</a>
 				</td>
 				<td>
-					This module provides an <code class="lang-d"><span class="typ">Array</span></code> type with deterministic memory usage not
- reliant on the GC, as an alternative to the built-in arrays.
+					This module provides a basic allocator that implements <code class="lang-d"><span class="pln">malloc</span><span class="pun">, </span><span class="pln">calloc and free<wbr/></span><span class="pun">.</span></code>
 
 				</td>
 			</tr>
