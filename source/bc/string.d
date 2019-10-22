@@ -1,5 +1,26 @@
 module bc.string;
 
+import bc.memory : default_alloc;
+
+
+//struct TString(alias allocator = default_alloc)
+//{
+//	import bc.memory : Box;
+
+//	Box!(char[]) __data;
+
+//	this( immutable(char[]) str )
+//	{
+		
+//		//__data = 
+//	}	
+//}
+
+//alias String = TString!();
+
+
+
+
 //import bc.memory : alloc, alloc_zero, release , sys_alloc;
 
 //import bc.io : printf;

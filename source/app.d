@@ -1,17 +1,11 @@
-import bc.io;
-import bc.string;
+	import bc.io;
 
-import bc.memory;
-
-
-
-
-enum DefaultCopyCtor = `
-this(ref typeof(this) other)
-{
-	foreach (i, ref field; other.tupleof)
-		this.tupleof[i] = field;
-};`;
+//enum DefaultCopyCtor = `
+//this(ref typeof(this) other)
+//{
+//	foreach (i, ref field; other.tupleof)
+//		this.tupleof[i] = field;
+//};`;
 
 @trusted struct Dummy
 {
@@ -46,98 +40,67 @@ this(ref typeof(this) other)
 }
 
 
+import bc.memory;
 
+struct String
+{
+	import bc.memory : Box;
 
-//TODO: Some/None will be nice to be implemented with ADT, tag should dissapear in case of Maybe
+	Box!(string) ptr;
+
+	size_t length(){ return ptr.capacity; }
+
+	this(Type)(Type str){
+		ptr = box(str[]);
+	}
+
+	String dup()
+	{
+		String tmp;
+		tmp.ptr = ptr.dup;
+		return tmp;
+	}
+
+	String opBinary(alias op = "~", T)( auto ref T other )
+		if( is(T == String) || is(T == string) )
+	{
+		import bc.memory : copyTo;
+
+		String new_string;
+		new_string.resize( length + other.length );
+		ptr[].copyTo( new_string[] );
+		other[].copyTo( new_string[length .. $] );
+		return new_string;
+	}
+
+	void opOpAssign( string op = "~", T )( auto ref T other )
+		if( is(T == String) || is(T == string) )
+	{
+		auto start = length;
+		ptr.resize( length + other.length );
+		other[].copyTo( ptr[start .. $] );
+	}
+
+	void resize(size_t size){ ptr.resize(size); }
+
+	auto opSlice(){ return ptr.opSlice(); }
+	auto opSlice( size_t start, size_t end ){ return ptr.opSlice(start , end); }
+	auto opDollar(){ return ptr.opDollar(); }
+
+}
+
 
 //@safe
 void main()
 {
-	default_alloc = DefaultAllocator();
-	import core.stdc.stdlib;
-	import core.stdc.time;
-	import std.range;
-	import std.algorithm;
-	import std.array;
-
-
-	//alias dummy_arr = Dummy[2];
-	import bc.memory;
-
-	/*Box!(Dummy[]) box1 = [Dummy(1), Dummy(2)];
-	auto box2 = box1.dup;
-
-	print(box1.data);
-	print(box2.data);*/
-
-	Box!(int) a;
-
-	a =  box(100);
-
-
-	//auto box1 = Dummy(2).box;
-
-	//auto box2 = box1.dup;
 	
-	//print(*box1.data);
-	//print(*box2.data);
+	String x = "1 + ".String ~ " 2 = ".String ~ " 3!".String;
+	//print( "1 + ".String , " 2 = ".String , " 3!".String );
 
-
-	//v[0] = 0;
-
-	//(*a.get).print;
-
-	//auto z = a.get()[0 .. 10];
-
-	//release!(default_alloc)(a.get);
-
-	//auto arr = ( cast(int*) default_alloc.malloc( 4 * 10 ) )[0 .. 5];
-
-	//arr[0] = 0;
-	//arr[1] = 1;
-	//arr[2] = 2;
-	//arr[3] = 3;
-	//arr[4] = 4;
-
-	//Ptr!(int[]) ptr;
-
-	//Ptr!(int[]) ptr2 = ptr;
-
-	//print(arr);
-	//print(ptr.data);
-
-	//print(*a.value.data, " - " , *b.value.data);
-
-	//a = b;
-
-	//c = d;
-
-	//Ptr!Data c;
-
-	//auto cc = Data(40);
-
-	//c = cc.move;
-
-	//a = Data(20);
-
-	//Ptr!Data b = Data(11);
-
-	//auto c = b.move;
-
-	//(*a.get).print;
-
-	//auto a2 = *a.get;
-
-	//   	for (auto __rangeCopy = r;
-	//     !__rangeCopy.empty;
-	//     __rangeCopy.popFront())
-	// {
-
-	//    // Loop body...
-	//}
-	//  	print(r);
-
-	//x.match!(ok => print(ok), err=>print(""));
+//pragma(msg, string.stringof);
+	//immutable(char)[] ptr = cast(string)malloc!(char[])(100);
+	//ptr = cast(string)malloc!(char[])(100);
+	
 
 }
 

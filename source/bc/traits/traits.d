@@ -1,16 +1,8 @@
 module bc.traits.traits;
 
-import std.traits : 
-    TemplateOf,
-    hasElaborateAssign, 
-    hasElaborateCopyConstructor,
-    hasElaborateDestructor;
+public:
 
-import std.traits : 
-    ReturnType,
-    Parameters,
-    ParameterIdentifierTuple;
-
+import std.traits;
 
 alias getAllMembers( alias T )                      = __traits(allMembers, T);
 alias getMember_( alias T, string Func )            = __traits( getMember, T, Func );
@@ -96,3 +88,5 @@ void callDtor( Type )( ref Type value )
         value.__xdtor;
     }
 }
+
+alias ArrayElement( T ) = typeof( T.init[0] );

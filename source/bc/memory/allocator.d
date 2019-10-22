@@ -6,12 +6,12 @@
 
 	A basic allocator must have this signature:
 	---
-struct IAllocator
-{
-	void* malloc(size_t);
-	void* calloc(size_t);
-	void free(void*);
-}
+	struct IAllocator
+	{
+		void* malloc(size_t);
+		void* calloc(size_t);
+		void free(void*);
+	}
 	---
 +/
 module bc.memory.allocator;
@@ -43,7 +43,7 @@ unittest{
 	auto log_allocator = LogAllocator();
 	auto buffer        = log_allocator.malloc(100);
 	log_allocator.free(buffer);
-};
+}
 
 static alloc_counter = 0;
 
