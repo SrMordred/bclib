@@ -3,3 +3,4 @@ dscanner.ini
 dub.selections.json
 project.sublime-project
 project.sublime-workspace
+*.exe
