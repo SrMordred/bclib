@@ -1,70 +1,70 @@
 module bc.io.print;
 
-import bc.io.stdout;
+import bc.io.stdout : stdout;
 
-@trusted
-void printl(alias IO = std_out, Values...)( auto ref Values values )
-{	
+void formatter( alias IO = stdout, Values... )( auto ref Values values )
+{
 	static foreach(value ; values)
 	{{
-		import bc.traits : isAny, isDArray;
-		import std.traits : isPointer, Unqual;
+		import bc.traits : isAny;
+		import bc.string : String;
+		import std.traits : isPointer, Unqual, isArray;
 
 		alias Type = Unqual!(typeof(value));
 
-		static if( is(typeof(Type.toIO)) )
+		static if( is(typeof(Type.toString)) )
 		{
-			value.toIO!IO();
+			value.toString( IO );
 		}
-		else static if( isAny!( Type, string, char[] ) )
+		else static if( isAny!( Type, string, String, char[] ) )
 		{
 			IO.put( value[0 .. $] );
 		}
 		else static if( is(Type == struct) )
 		{
-			printl!IO( Type.stringof, "{");
+			formatter!IO( Type.stringof, '{');
 			static if( Type.tupleof.length )
 			{
 				static foreach( index ; 0 .. Type.tupleof.length-1 )
 				{{
 	    			alias FieldType = typeof(Type.tupleof[index]);
 
-	    			printl!IO('"', Type.tupleof[index].stringof ,"\" : ");
+	    			formatter!IO('"', Type.tupleof[index].stringof ,"\" : ");
 
 	    			static if( is( FieldType == string ) )
-	    				printl!IO('"', value.tupleof[index], "\", " );	
+	    				formatter!IO('"', value.tupleof[index], "\", " );	
 	    			else
-	    				printl!IO(value.tupleof[index], ", " );	
+	    				formatter!IO(value.tupleof[index], ", " );	
 	    			
 				}}
 
 				alias FieldType = typeof(Type.tupleof[$-1]);
 
-    			printl!IO('"', Type.tupleof[$-1].stringof ,"\" : ");
+    			formatter!IO('"', Type.tupleof[$-1].stringof ,"\" : ");
 
     			static if( is( FieldType == string ) )
-    				printl!IO('"', value.tupleof[$-1], "\"" );	
+    				formatter!IO('"', value.tupleof[$-1], "\"" );	
     			else
-    				printl!IO(value.tupleof[$-1] );	
+    				formatter!IO(value.tupleof[$-1] );	
 			}
-			printl!IO("}");
+			formatter!IO('}');
 			
 		}
 		else static if(is(Type == bool))
 	    {
 			IO.put( value ? "true" : "false" );
 	    }
-	    else static if( isDArray!Type )
+	    else static if( isArray!Type )
 	    {
-	    	printl!IO("[");
+	    	formatter!IO("[");
 	    	if( value.length )
 	    	{
 	    		foreach( i ; 0 .. value.length - 1 )
-	    			printl!IO( value[i] , ", " );
+	    			formatter!IO( value[i] , ", " );
 	    		
-	    		printl!IO( value[$-1] );
+	    		formatter!IO( value[$-1] );
 	    	}
-	    	printl!IO("]");
+	    	formatter!IO("]");
 	    }
 	    else
 	    {
@@ -96,14 +96,65 @@ void printl(alias IO = std_out, Values...)( auto ref Values values )
 	        size_t length = sprintf(tmp.ptr, format , value );
 			IO.put( tmp[0 .. length] );
 	    }
-				
 	}}
-	
-	
 }
 
-void print(alias IO = Stdout() , Values...)( auto ref Values values )
+void print( Values... )( auto ref Values values )
 {
-	printl!IO(values);
-	printl!IO('\n');
+	import std.functional : forward;
+	formatter!(stdout)(forward!values);
+	formatter!(stdout)('\n');
+}
+
+
+
+void print(alias string fmt, Values... )( auto ref Values values )
+{
+	import core.stdc.stdio;
+	import std.algorithm : countUntil;
+
+	static gen(){
+
+		import bc.ctfe : Code;
+
+		Code!(4096) code;
+
+		code( "alias f = formatter;\n" );
+		code( "alias s = stdout;\n" );
+
+		size_t current = 0;
+		size_t limit = fmt.length;
+		size_t start = current;
+		size_t value_index = 0;
+		
+		while( current != limit )
+		{
+			if( fmt[ current ] == '?'  )
+			{
+				if( current+1 != limit && fmt[current+1] == '?' )
+				{
+					++current;
+				}
+				else
+				{
+					code("f!s(fmt[", start ," .. ",current ,"]);\n");
+					code("f!s(values[", value_index ,"]);\n");	
+					start = current+1;
+					++value_index;
+				}
+			}
+			++current;
+		}
+
+		if( start != current )
+		{
+			code("f!s(fmt[", start ," .. ",current ,"]);\n");
+		}
+
+		code("f!s('\\n');");
+		return code[];
+
+	}
+	//pragma(msg, gen());
+	mixin(gen());
 }

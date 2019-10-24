@@ -1,4 +1,4 @@
-	import bc.io;
+import bc.io;
 
 //enum DefaultCopyCtor = `
 //this(ref typeof(this) other)
@@ -39,62 +39,27 @@
 	}
 }
 
-
 import bc.memory;
 
-struct String
-{
-	import bc.memory : Box;
-
-	Box!(string) ptr;
-
-	size_t length(){ return ptr.capacity; }
-
-	this(Type)(Type str){
-		ptr = box(str[]);
-	}
-
-	String dup()
-	{
-		String tmp;
-		tmp.ptr = ptr.dup;
-		return tmp;
-	}
-
-	String opBinary(alias op = "~", T)( auto ref T other )
-		if( is(T == String) || is(T == string) )
-	{
-		import bc.memory : copyTo;
-
-		String new_string;
-		new_string.resize( length + other.length );
-		ptr[].copyTo( new_string[] );
-		other[].copyTo( new_string[length .. $] );
-		return new_string;
-	}
-
-	void opOpAssign( string op = "~", T )( auto ref T other )
-		if( is(T == String) || is(T == string) )
-	{
-		auto start = length;
-		ptr.resize( length + other.length );
-		other[].copyTo( ptr[start .. $] );
-	}
-
-	void resize(size_t size){ ptr.resize(size); }
-
-	auto opSlice(){ return ptr.opSlice(); }
-	auto opSlice( size_t start, size_t end ){ return ptr.opSlice(start , end); }
-	auto opDollar(){ return ptr.opDollar(); }
-
+struct A{
+	int a,b,c;
 }
+
+
+
 
 
 //@safe
 void main()
-{
-	
-	String x = "1 + ".String ~ " 2 = ".String ~ " 3!".String;
+{	
+	import std.array;
+	import bc.string;
+
+	import bc.io.stdout : stdout;
+
+
+
+	//sprintf(stdout, "%d", 100);
 	//print( "1 + ".String , " 2 = ".String , " 3!".String );
 
 //pragma(msg, string.stringof);

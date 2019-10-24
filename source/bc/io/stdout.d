@@ -26,4 +26,4 @@ struct Stdout
     }
 }
 
-static Stdout std_out;
+static Stdout stdout;
