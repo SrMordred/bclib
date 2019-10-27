@@ -2,9 +2,12 @@ module bc.string;
 
 import bc.memory : default_alloc;
 
+//TODO: want to make \0 ended strings also
+//TODO: dont have code to shrink strings (do i need?)
+
 struct TString(alias Allocator = default_alloc)
 {
-	import bc.memory : Box;
+	import bc.memory : Box, box;
 
 	Box!(string, default_alloc) ptr;
 
@@ -43,11 +46,16 @@ struct TString(alias Allocator = default_alloc)
 		other[].copyTo( ptr[start .. $] );
 	}
 
-	void resize(size_t size){ ptr.resize(size); }
+	void resize(size_t size){ ptr.reserve(size); }
 
 	auto opSlice(){ return ptr.opSlice(); }
 	auto opSlice( size_t start, size_t end ){ return ptr.opSlice(start , end); }
 	auto opDollar(){ return ptr.opDollar(); }
+
+	//void toString( alias IO )()
+	//{	
+	//	IO.put( ptr[] );
+	//}	
 
 }
 

@@ -54,8 +54,7 @@ struct DefaultAllocator
 {
     import core.stdc.stdlib : _malloc = malloc, _calloc = calloc, _free = free;
 
-    import bc.io : printf;
-    //void printf(T...)(auto ref T t){}
+    import core.stdc.stdio : printf;
     /**
 	Allocate memory
 	Params: size = Size in bytes of memory to be allocated

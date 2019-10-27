@@ -10,13 +10,11 @@
 	"dependencies": {
 	},
 	"dflags":[
-		"-preview=markdown"
+		
 	],
 	"dflags-ldc":[
 		"-enable-cross-module-inlining", 
-		"-boundscheck=off",
-		"-preview=markdown"
-	
+		"-boundscheck=off"
 	],
 	"buildOptions": ["betterC"]
 	

@@ -3,7 +3,7 @@ module bc.memory.box;
 import bc.memory.allocator : default_alloc;
 import bc.error : panic;
 
-@trusted struct Box(Type, alias Allocator = default_alloc)
+struct Box(Type, alias Allocator = default_alloc)
 {
 	import std.traits : isArray, Select, Unqual;
 	import std.range : ElementType;
@@ -32,7 +32,7 @@ import bc.error : panic;
 		else
 		{
 			ptr = malloc!(Type, Allocator);
-			value.moveTo(*ptr);			
+			value.moveTo( *ptr );			
 		}
 	}
 
@@ -60,15 +60,21 @@ import bc.error : panic;
 
 	~this()
 	{
-		import bc.memory : free;
-		free!(Allocator)( ptr );
+		free();
 	}
 
 	void free()
 	{
-		import bc.memory : _free = free;
+		import bc.memory : _free = free, destructor;
 		if ( this )
+		{
+			static if(IsArray)
+				destructor(ptr);
+			else
+				destructor(*ptr);
+
 			_free!(Allocator)(ptr);
+		}
 	}
 
 	Box dup()
@@ -78,11 +84,15 @@ import bc.error : panic;
 			import std.algorithm : move;
 			import bc.memory : assignAllTo, calloc;
 
-			auto new_data = calloc!(Type, Allocator)( ptr.length );
-			ptr.assignAllTo( new_data );
-
 			Box!( Type, Allocator ) new_box;
-			new_box.ptr = new_data;
+
+			if( ptr.length )
+			{
+				auto new_ptr = calloc!(Type, Allocator)( ptr.length );
+				ptr.assignAllTo( new_ptr );
+				new_box.ptr = new_ptr;
+			}
+
 			return new_box;
 		}
 		else
@@ -91,15 +101,15 @@ import bc.error : panic;
 
 	static if( IsArray )
 	{
-		import bc.memory : calloc, copyTo;
-
-		void resize( size_t size )
+		import bc.memory : calloc, copyTo, _free = free;
+		void reserve( size_t size )
 		{
 			if( size > ptr.length )
 			{
 				//TODO: every calloc call can be replaced with malloc call if the type don´t have indirections
 				auto tmp = calloc!(Type, Allocator)( size );
 				ptr.copyTo( tmp );
+				free();
 				ptr = tmp;
 			}
 		}
@@ -107,9 +117,10 @@ import bc.error : panic;
 		size_t opDollar(){ return ptr.length; }
 		alias capacity = opDollar;
 
-		ref opIndex( size_t index ) { return ptr[ index ]; }
+		ref  opIndex( size_t index ) { return ptr[ index ]; }
 		auto opSlice() { return ptr[0 .. $]; }
 		auto opSlice(size_t start, size_t end) { return ptr[start .. end]; }
+
 	}
 
 	/*
@@ -120,7 +131,6 @@ import bc.error : panic;
 		return ptr !is null;
 	}
 
-	@system
 	ref opUnary( string op: "*")()
 	{
 		static if( IsArray ) return ptr;

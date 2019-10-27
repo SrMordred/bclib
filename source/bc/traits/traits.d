@@ -72,8 +72,6 @@ template hasMember( T, Members... )
         enum hasMember = hasMember!(T, Members[0]) && hasMember!(T, Members[1 .. $]);
 }
 
-enum isBCArray( T ) = hasMember!( T, "ptr", "length" );
-
 enum isDArray( T ) = T.stringof[$-2 .. $] == "[]";
 
 //Work with auto ref Templates
@@ -90,3 +88,21 @@ void callDtor( Type )( ref Type value )
 }
 
 alias ArrayElement( T ) = typeof( T.init[0] );
+
+template isBCArray( T )
+{
+    import bc.container.array : Array;
+    static if( isTemplateOf!(T, Array) )
+        enum isBCArray = true;
+    else
+        enum isBCArray = false;
+}
+
+template isArray( T )
+{
+    import std.traits : _isArray = isArray;
+    static if( _isArray!T || isBCArray!T )
+        enum isArray = true;
+    else
+        enum isArray = false;
+}

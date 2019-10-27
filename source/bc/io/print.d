@@ -14,7 +14,7 @@ void formatter( alias IO = stdout, Values... )( auto ref Values values )
 
 		static if( is(typeof(Type.toString)) )
 		{
-			value.toString( IO );
+			value.toString!IO;
 		}
 		else static if( isAny!( Type, string, String, char[] ) )
 		{
@@ -22,14 +22,14 @@ void formatter( alias IO = stdout, Values... )( auto ref Values values )
 		}
 		else static if( is(Type == struct) )
 		{
-			formatter!IO( Type.stringof, '{');
+			formatter!IO( "{ \"__type\": \"", Type.stringof, "\", ");
 			static if( Type.tupleof.length )
 			{
 				static foreach( index ; 0 .. Type.tupleof.length-1 )
 				{{
 	    			alias FieldType = typeof(Type.tupleof[index]);
 
-	    			formatter!IO('"', Type.tupleof[index].stringof ,"\" : ");
+	    			formatter!IO('"', Type.tupleof[index].stringof ,"\": ");
 
 	    			static if( is( FieldType == string ) )
 	    				formatter!IO('"', value.tupleof[index], "\", " );	
@@ -40,7 +40,7 @@ void formatter( alias IO = stdout, Values... )( auto ref Values values )
 
 				alias FieldType = typeof(Type.tupleof[$-1]);
 
-    			formatter!IO('"', Type.tupleof[$-1].stringof ,"\" : ");
+    			formatter!IO('"', Type.tupleof[$-1].stringof ,"\": ");
 
     			static if( is( FieldType == string ) )
     				formatter!IO('"', value.tupleof[$-1], "\"" );	
@@ -56,15 +56,14 @@ void formatter( alias IO = stdout, Values... )( auto ref Values values )
 	    }
 	    else static if( isArray!Type )
 	    {
-	    	formatter!IO("[");
+	    	IO.put("[");
 	    	if( value.length )
 	    	{
 	    		foreach( i ; 0 .. value.length - 1 )
 	    			formatter!IO( value[i] , ", " );
-	    		
 	    		formatter!IO( value[$-1] );
 	    	}
-	    	formatter!IO("]");
+	    	IO.put("]");
 	    }
 	    else
 	    {
@@ -104,57 +103,4 @@ void print( Values... )( auto ref Values values )
 	import std.functional : forward;
 	formatter!(stdout)(forward!values);
 	formatter!(stdout)('\n');
-}
-
-
-
-void print(alias string fmt, Values... )( auto ref Values values )
-{
-	import core.stdc.stdio;
-	import std.algorithm : countUntil;
-
-	static gen(){
-
-		import bc.ctfe : Code;
-
-		Code!(4096) code;
-
-		code( "alias f = formatter;\n" );
-		code( "alias s = stdout;\n" );
-
-		size_t current = 0;
-		size_t limit = fmt.length;
-		size_t start = current;
-		size_t value_index = 0;
-		
-		while( current != limit )
-		{
-			if( fmt[ current ] == '?'  )
-			{
-				if( current+1 != limit && fmt[current+1] == '?' )
-				{
-					++current;
-				}
-				else
-				{
-					code("f!s(fmt[", start ," .. ",current ,"]);\n");
-					code("f!s(values[", value_index ,"]);\n");	
-					start = current+1;
-					++value_index;
-				}
-			}
-			++current;
-		}
-
-		if( start != current )
-		{
-			code("f!s(fmt[", start ," .. ",current ,"]);\n");
-		}
-
-		code("f!s('\\n');");
-		return code[];
-
-	}
-	//pragma(msg, gen());
-	mixin(gen());
 }

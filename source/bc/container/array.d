@@ -1,5 +1,253 @@
 module bc.container.array;
 
+private import bc.memory : default_alloc;
+
+struct Array(Type, alias Allocator = default_alloc)
+{
+    import bc.memory : Box;
+
+    enum RESERVE_FACTOR = 1.5;
+
+    Box!(Type[]) ptr;
+    size_t _length;
+
+    auto length()
+    {
+        return _length;
+    }
+
+    auto capacity()
+    {
+        return ptr.capacity;
+    }
+
+    this(Values...)(auto ref Values values)
+    {
+
+        import bc.traits : isArray;
+        import std.range : isInputRange;
+        import std.algorithm : move;
+
+        size_t new_cap = 0;
+        static foreach (value; values)
+        {
+            {
+                alias ValueType = typeof(value);
+                static if (is(ValueType == Type))
+                {
+                    ++new_cap;
+                }
+                else static if (isArray!ValueType)
+                {
+                    new_cap += values.length;
+                }
+            }
+        }
+
+        reserve(new_cap);
+
+        static foreach (value; values)
+        {
+            {
+                alias ValueType = typeof(value);
+                static if (is(ValueType == Type))
+                {
+                    import bc.memory : moveTo;
+
+                    value.moveTo(ptr[_length++]);
+                }
+                else static if (isArray!ValueType)
+                {
+                    import bc.memory : moveTo;
+
+                    value[].moveTo(ptr[_length .. _length + value.length]);
+                    _length += value.length;
+                }
+                else static if (isInputRange!ValueType)
+                {
+                    foreach (ref val; value)
+                    {
+                        push(val);
+                    }
+                }
+            }
+        }
+    }
+
+    auto dup()
+    {
+        Array!(Type, Allocator) tmp;
+        tmp.ptr = ptr.dup;
+        return tmp;
+    }
+
+    void reserve(size_t size)
+    {
+        ptr.reserve(size);
+    }
+
+    void push(Values...)(auto ref Values values)
+    {
+        import bc.traits : isArray;
+
+        size_t new_len = length;
+        static foreach (value; values)
+        {
+            {
+                alias ValueType = typeof(value);
+                static if (is(ValueType == Type))
+                {
+                    ++new_len;
+                }
+                else static if (isArray!ValueType)
+                {
+                    new_len += values.length;
+                }
+            }
+        }
+
+        if (new_len > capacity)
+            reserve(cast(size_t)((capacity ? capacity : 4) * RESERVE_FACTOR));
+
+        static foreach (value; values)
+        {
+            {
+                alias ValueType = typeof(value);
+                static if (is(ValueType == Type))
+                {
+                    import bc.memory : moveTo;
+
+                    value.moveTo(ptr[_length++]);
+                }
+                else static if (isArray!ValueType)
+                {
+                    import bc.memory : moveTo;
+
+                    value[].moveTo(ptr[_length .. _length + value.length]);
+                    _length += value.length;
+                }
+                else static if (isInputRange!ValueType)
+                {
+                    foreach (ref val; value)
+                    {
+                        push(val);
+                    }
+                }
+            }
+        }
+    }
+
+    alias put = push;
+
+    void insert( Type value , size_t index )
+    {
+    	import bc.memory : destructor, moveTo, MemOverlap;
+
+    	if (length + 1 > capacity)
+            reserve(cast(size_t)((capacity ? capacity : 4) * RESERVE_FACTOR));
+
+    	ptr[index .. _length].moveTo( ptr[index + 1 .. _length + 1] );
+    	value.moveTo( ptr[index] );
+    	++_length;
+    }
+
+    void insertUnstable( Type value , size_t index )
+    {
+    	import bc.memory : destructor, moveTo, swap;
+
+    	if (length + 1 > capacity)
+            reserve(cast(size_t)((capacity ? capacity : 4) * RESERVE_FACTOR));
+
+        swap( ptr[index], ptr[_length] );
+    	value.moveTo( ptr[index] );
+    	++_length;
+    }
+
+    void pop()
+    {
+        import bc.memory : destructor;
+
+        --_length;
+        destructor(ptr[_length]);
+    }
+
+    void pop(size_t size)
+    {
+        import bc.memory : destructor;
+
+        destructor(ptr[_length - size .. _length]);
+        _length -= size;
+    }
+
+    void free()
+    {
+        ptr.free();
+    }
+
+    alias opDollar = capacity;
+
+    ref opIndex(size_t index)
+    {
+        return ptr[index];
+    }
+
+    auto opSlice()
+    {
+        return ptr[0 .. $];
+    }
+
+    auto opSlice(size_t start, size_t end)
+    {
+        return ptr[start .. end];
+    }
+
+    ref front()
+    {
+    	return ptr[0];
+    }
+
+    ref back()
+    {
+    	return ptr[_length-1];
+    }
+
+    Type[] opBinaryRight(string op = "in")( Type needle )
+    {
+    	size_t index = 0;
+    	while(true)
+    	{
+    		if( ptr[index] == needle ) return ptr[ index .. _length ];
+    		++index;
+    		if( index == _length ) return null;
+    	}
+    }
+
+
+    void toString(alias IO)()
+    {
+        import bc.io.print : formatter;
+
+        formatter!IO("[");
+        if (_length)
+        {
+            foreach (ref val; ptr[0 .. _length - 1])
+            {
+                formatter!IO(val, ", ");
+            }
+            formatter!IO(ptr[_length - 1]);
+        }
+        formatter!IO("]");
+    }
+}
+
+template array(alias Allocator = default_alloc)
+{
+    auto array(Values...)(auto ref Values values)
+    {
+        return Array!(Values[0], Allocator)(values);
+    }
+}
+
 //import bc.memory : alloc, alloc_zero, release;
 //import bc.allocator : sys_alloc, IAllocator;
 //import bc.traits : hasInterface;
@@ -14,7 +262,6 @@ module bc.container.array;
 //	size_t length(){ return len; }
 //	size_t capacity(){ return data.length; }
 
-	
 //	this(ref Array other)
 //	{
 //		import std.traits : hasIndirections;
@@ -133,7 +380,6 @@ module bc.container.array;
 
 //	auto opDollar(){ return len; }
 
-	
 //	void toIO(alias IO)()
 //	{
 //		import bc.io : printl;
@@ -156,31 +402,6 @@ module bc.container.array;
 //{
 //	return Array!(T[0])(t);
 //}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //{	
 
@@ -216,7 +437,7 @@ module bc.container.array;
 //			{
 //				new_cap++;
 //			}
-			
+
 //		}}
 
 //		reserve( new_cap );
@@ -420,8 +641,6 @@ module bc.container.array;
 //		}
 //	}
 
-
-
 //	/*
 //	OTHER
 //	*/
@@ -449,5 +668,3 @@ module bc.container.array;
 //    	printl!IO(" ]");
 //	}
 //}
-
-
