@@ -34,9 +34,7 @@ auto calloc(Type, alias Allocator = default_alloc)(const size_t size = 1)
     }
 }
 
-//TODO: destructor here is WRONG
-//must separated this
-void free(alias Allocator, Type)(ref Type value)
+void free(alias Allocator = default_alloc, Type)(ref Type value)
 {
     import std.traits : isArray, isPointer, PointerTarget, Unqual, hasElaborateDestructor;
     import bc.error : panic;

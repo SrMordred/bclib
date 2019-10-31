@@ -1,105 +1,107 @@
 module bc.adt;
 
-struct ADT(Types...)
+public enum This;
+
+struct ADT(T...)
 {
     import std.meta : ReplaceAll;
-    import std.variant : This;
+    //import std.variant : This;
+
+    alias Types = T;
 
     alias InternalTypes = ReplaceAll!(This*, typeof(this)*, Types);
 
     //TODO:  is better to choose tag depending on max(Types) lenghts, or just size_t for a better memory layout?
 
-    private
+    //private
+    size_t tag;
+    union
     {
-        size_t tag;
-        union
-        {
-            InternalTypes values;
-        }
+        InternalTypes values;
     }
 
-    static foreach (index, Type; InternalTypes)
-    {
-        this(Type value)
-        {
+    //static foreach (index, Type; InternalTypes)
+    //{
+    //    this(Type value)
+    //    {
 
-            values[index] = value;
-            tag = index;
-        }
+    //        values[index] = value;
+    //        tag = index;
+    //    }
 
-        void opAssign(Type value)
-        {
-            values[index] = value;
-            tag = index;
-        }
-    }
+    //    void opAssign(Type value)
+    //    {
+    //        values[index] = value;
+    //        tag = index;
+    //    }
+    //}
 
 
 
-    auto match(Visitors...)()
-    {
+    //auto match(Visitors...)()
+    //{
 
-        enum VisitorIndices = () {
-            import std.algorithm : canFind, find;
-            import std.range : iota;
-            import std.meta : staticIndexOf;
-            import std.traits : isFunction, isFunctionPointer, isDelegate, Parameters;
+    //    enum VisitorIndices = () {
+    //        import std.algorithm : canFind, find;
+    //        import std.range : iota;
+    //        import std.meta : staticIndexOf;
+    //        import std.traits : isFunction, isFunctionPointer, isDelegate, Parameters;
 
-            int[InternalTypes.length] indices;
-            indices[] = -1;
+    //        int[InternalTypes.length] indices;
+    //        indices[] = -1;
 
-            static foreach (Index, F; Visitors)
-            {
-                static if (isFunction!F || isFunctionPointer!F || isDelegate!F)
-                {
-                    indices[staticIndexOf!(Parameters!(F)[0], InternalTypes)] = Index;
-                }
-            }
-            static foreach (Index, F; Visitors)
-            {
-                static if (!(isFunction!F || isFunctionPointer!F || isDelegate!F))
-                {
-                    {
-                        auto f = indices[].find(-1);
-                        if (f.length)
-                            f[0] = Index;
-                    }
-                }
-            }
-            //TODO: check if canFind -1; if yes then is not exaustive match
-            return indices;
-        }();
+    //        static foreach (Index, F; Visitors)
+    //        {
+    //            static if (isFunction!F || isFunctionPointer!F || isDelegate!F)
+    //            {
+    //                indices[staticIndexOf!(Parameters!(F)[0], InternalTypes)] = Index;
+    //            }
+    //        }
+    //        static foreach (Index, F; Visitors)
+    //        {
+    //            static if (!(isFunction!F || isFunctionPointer!F || isDelegate!F))
+    //            {
+    //                {
+    //                    auto f = indices[].find(-1);
+    //                    if (f.length)
+    //                        f[0] = Index;
+    //                }
+    //            }
+    //        }
+    //        //TODO: check if canFind -1; if yes then is not exaustive match
+    //        return indices;
+    //    }();
 
-        final switch (tag)
-        {
-            static foreach (TypeIndex; 0 .. InternalTypes.length)
-            {
-        		case TypeIndex:
-                	return Visitors[VisitorIndices[TypeIndex]](values[TypeIndex]);
-            }
-        }
-    }
+    //    final switch (tag)
+    //    {
+    //        static foreach (TypeIndex; 0 .. InternalTypes.length)
+    //        {
+    //    		case TypeIndex:
+    //            	return Visitors[VisitorIndices[TypeIndex]](values[TypeIndex]);
+    //        }
+    //    }
+    //}
 
-    //get or exit
-    auto get(Type)()
-    {
-        import std.meta : staticIndexOf;
+    ////get or exit
+    //auto get(Type)()
+    //{
+    //    import std.meta : staticIndexOf;
 
-        enum TypeIndex = staticIndexOf!(Type, InternalTypes);
+    //    enum TypeIndex = staticIndexOf!(Type, InternalTypes);
 
-        if (tag == TypeIndex)
-            return values[TypeIndex];
-        else
-            return Type.init;
-    }
+    //    if (tag == TypeIndex)
+    //        return values[TypeIndex];
+    //    else
+    //        return Type.init;
+    //}
 
-    auto isType(Type)()
-    {
-        import std.meta : staticIndexOf;
+    //auto isType(Type)()
+    //{
+    //    import std.meta : staticIndexOf;
 
-        enum TypeIndex = staticIndexOf!(Type, InternalTypes);
-        return tag == TypeIndex;
-    }
+    //    enum TypeIndex = staticIndexOf!(Type, InternalTypes);
+    //    return tag == TypeIndex;
+    //}
 }
 
 //struct TSome(T)
