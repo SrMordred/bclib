@@ -10,12 +10,25 @@
 	"dependencies": {
 	},
 	"dflags":[
-		
 	],
 	"dflags-ldc":[
 		"-enable-cross-module-inlining", 
 		"-boundscheck=off"
 	],
-	"buildOptions": ["betterC"]
-	
+	"configurations": [
+		{
+			"name": "config_debug",
+			"targetType": "executable",
+			"buildOptions": ["betterC"]
+		},
+		{
+			"name": "config_test",
+			"targetType": "executable",
+			"targetName" : "unittest-cov",
+			"buildOptions": ["unittests", "coverage"],
+			"postBuildCommands" :[
+				"unittest-cov.exe --DRT-covopt=\"merge:0 dstpath:coverage\"",
+			]
+		}
+	]
 }

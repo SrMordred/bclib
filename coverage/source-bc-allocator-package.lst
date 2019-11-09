@@ -1,0 +1,7 @@
+       |module bc.allocator;
+       |
+       |//public:
+       |//      import bc.allocator.default_alloc;
+       |//      import bc.allocator.allocator_interface;
+       |
+source\bc\allocator\package.d has no code

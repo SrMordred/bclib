@@ -43,142 +43,186 @@ import bc.io : print;
 
 import bc.container : Dict;
 
-template match(Visitors...){
 
-	auto match( Type )( auto ref Type value )
+//TODO: ADT pointers 
+//TODO: Result and Maybe types
+//Some()
+//None()
+//Ok()
+//Err()
+
+//@safe
+
+
+mixin template Interface()
+{
+
+	import bc.traits : 
+		getAllMembers, 
+		getMember_, 
+		isFunction,
+		getFunctionReturnType,
+		getFunctionParamsType;
+
+	import std.meta : AliasSeq;
+
+	alias Self = typeof(this);
+
+	void* ptr;
+
+	void opAssign( T )(auto ref T other)
 	{
-		import bc.traits: isPointer, isArray, isTemplateOf;
-		import bc.adt : ADT;
+		ptr = cast(void*)&other;
+	}
 
-		static if( isPointer!Type )
+	//pragma(msg, getAllMembers!Self );
+	mixin( 
+		(){
+		static foreach( member ; getAllMembers!Self )
 		{
-			static assert(Visitors.length == 2, 
-				"Function pointer.match!(Visitors...) must have 2 visitors.");
+			static if( member != "Self" )
+			{{
+				alias Member = getMember_!( Self , member );	
 			
-			if( value !is null )
-			{
-				static if( __traits( compiles, Visitors[0](value) ) )
-					Visitors[0](value);
-				else static if( __traits( compiles, Visitors[0]() ) )
-					Visitors[0]();
-			}
-			else
-			{
-				static if( __traits( compiles, Visitors[1](value) ) )
-					Visitors[1](value);
-				else static if( __traits( compiles, Visitors[1]() ) )
-					Visitors[1]();
-			}
+		        static if( isFunction!( Member ) )
+		        {{
+		            alias ReturnType = getFunctionReturnType!( Member );
+		            alias Params     = getFunctionParamsType!( Member );
+
+		            pragma(msg, ReturnType);
+		            pragma(msg, Params );
+
+		        }}
+			}}
 		}
-		else static if( isArray!Type )
-		{
-			static assert(Visitors.length == 2, 
-				"Function array.match!(Visitors...) must have 2 visitors.");
+			return "";
+		}()
+	);
 
-			if( value.length > 0 )
-			{
-				static if( __traits( compiles, Visitors[0](value) ) )
-					Visitors[0](value);
-				else static if( __traits( compiles, Visitors[0]() ) )
-					Visitors[0]();
-			}
-			else
-			{
-				static if( __traits( compiles, Visitors[1](value) ) )
-					Visitors[1](value);
-				else static if( __traits( compiles, Visitors[1]() ) )
-					Visitors[1]();
-			}
-		}
-		else static if( isTemplateOf!( Type, ADT ) )
-		{
-			import std.meta: staticIndexOf;
-			import std.algorithm : find;
 
-			//TODO: How to implement default Visitor ?
-			//enum hasDefaultVisitor = staticIndexOf!( _, Visitors ) != -1;
+	pragma(msg, typeof(this));
+}
 
-			alias ADT_Types = Type.Types;
+struct ITeste
+{
+	mixin Interface;
 
-			enum VisitorsIndex = (){
+	ref int showme( int x );
+	void showme2( int x, int y );
+}
 
-				import bc.traits : isFunction, isFunctionPointer, isDelegate, Parameters;
-
-				int[ ADT_Types.length ] indices;
-				string[ ADT_Types.length ] indices_types;
-				indices[] = -1;
-
-				static foreach( Index, T ; ADT_Types )
-				{
-					indices_types[ Index ] = T.stringof;
-				}
-
-				static foreach(Index, Visitor ; Visitors )
-				{
-                	static if (isFunction!Visitor || isFunctionPointer!Visitor || isDelegate!Visitor)
-                	{
-                    	indices[staticIndexOf!(Parameters!( Visitor )[0], ADT_Types )] = Index;
-                	}
-				}
-				static foreach(Index, Visitor ; Visitors )
-				{
-                	static if ( __traits( isTemplate , Visitor ) )
-                	{{
-                		auto f = indices[].find(-1);
-                        if (f.length)
-                            f[0] = Index;
-                	}}
-				}
-
-				//static if( !hasDefaultVisitor )
-				//{
-					foreach( index, type ; indices_types )
-					{
-						if( indices[ index ] == -1)
-						{
-							assert(0, "You must implement a Visitor with paramater: " ~ type );
-						}
-					}	
-				//}
-				
-
-				return indices;
-			}();
-
-			final switch (value.tag)
-		    {
-		        static foreach (TypeIndex; 0 .. ADT_Types.length)
-		        {
-		    		case TypeIndex:
-		            	return Visitors[VisitorsIndex[TypeIndex]](value.values[TypeIndex]);
-		        }
-		    }
-		}
+struct T1{
+	int a;
+	void showme2(){ 
+		print("T1 showme2",a);
 	}
 }
 
-enum _;
+struct T2{
+	int a,b;
+	void showme2(){ 
+		print("T2 showme2",a,b);
+	}
+}
+
+//static foreach( i; 0 .. 10 )
+//{{
+//	enum teste;
+//}}
 
 
 
-//@safe
+
+
+import bc.memory.allocator;
+
+
+
+
+void nullMe( ref int[] slice )
+{
+	slice = null;
+}
+
+//extern(C)
 void main()
 {	
-	import std.array : staticArray;
-	import std.range : iota;
+	static foreach(u; __traits(getUnitTests, bc.memory.allocator )) {
+		u();
+	}
 
-	import bc.traits;
-	import bc.memory;
-	import std.array : staticArray;
-	import bc.adt;
-
-	ADT!(int, float) type;
+	static foreach(u; __traits(getUnitTests, bc.memory.box )) {
+		u();
+	}
 
 
-	type.match!(
-		(float x) => print("float : ",x),
-		(int x) => print("int : ", x),
-	);
+
+
+	//auto x = teste.make;
+
+	//{
+	//	print("oi");
+	//}
+
+	//import std.array : staticArray;
+	//import std.range : iota;
+
+	//import bc.traits;
+	//import bc.memory;
+	//import std.array : staticArray;
+	//import bc.adt;
+	//import bc.match;
+
+	//import core.stdc.stdlib : _calloc = calloc;
+
+	//T1 t1;
+	//T2 t2;
+
+
+	//alias F = void function();
+
+	//auto ptr = cast(F)(&ITeste().showme2).funcptr;
+
+	//t1.a = 123;
+
+	//void delegate() ptr2;
+
+	//ptr2.funcptr = ptr;
+	//ptr2.ptr = &t1;
+
+	//ptr2();
+
+	//auto ptr2 = cast(void delegate()) ptr;
+
+	//ptr();
+	
+
+	//x.x= 10;
+	//x.showme();
+
+	//ITeste ptr;
+
+	//T1 t1;
+	//T2 t2;
+
+	//alias Fun = void function(ITeste*);
+
+	//Fun showme = cast(Fun)(&(ITeste().showme2)).funcptr;
+
+	//pragma(msg, typeof(showme));
+	//showme(cast(ITeste*)&t1);
+
+	//ptr = t1;
+
+	//ptr.showme2();
+
+	//ADT!(int, float) type;
+
+
+	//type.match!(
+	//	(float x) => print("float : ",x),
+	//	(int x) => print("int : ", x),
+	//);
 
 
 

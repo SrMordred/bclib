@@ -1,0 +1,7 @@
+       |module bc.container;
+       |
+       |public:
+       |        import bc.container.array;
+       |        import bc.container.dict;
+       |        import bc.container.bag;
+source\bc\container\package.d has no code

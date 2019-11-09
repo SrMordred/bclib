@@ -98,7 +98,7 @@ void memZero(Type)(Type[] slice)
 
 void copyTo(Type)(Type source, Type target)
 {
-    import bc.traits : isArray, ArrayElement, PointerTarget, Unqual;
+    import bc.traits : isArray, isPointer, ArrayElement, PointerTarget, Unqual;
     import core.stdc.string : memcpy;
 
     alias CleanType = Unqual!(Type);

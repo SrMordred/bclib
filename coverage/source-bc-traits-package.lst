@@ -1,0 +1,5 @@
+       |module bc.traits;
+       |
+       |public:
+       |        import bc.traits.traits;
+source\bc\traits\package.d has no code

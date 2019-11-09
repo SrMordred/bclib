@@ -32,7 +32,7 @@ unittest{
 		}
 		void* calloc(size_t size){
 			printf("Calloc : (%d)\n", size);
-			return _calloc( size );
+			return _calloc( 1, size );
 		}
 		void free(void* ptr){
 			_free(ptr);
@@ -81,6 +81,7 @@ struct DefaultAllocator
         return ptr;
     }
     
+    
     /**
 	Free memory
 	Params: ptr = Pointer to the memory address to be freed
@@ -94,4 +95,21 @@ struct DefaultAllocator
 }
 
 ///global variable that are used by default on implementations that require an allocator.
-DefaultAllocator default_alloc;
+public DefaultAllocator default_alloc;
+
+
+unittest{
+
+	DefaultAllocator allocator;
+	auto ptr = allocator.malloc(100);
+	byte* bytes = cast(byte*)allocator.calloc(100);
+	bool iszero = true;
+	foreach(v ; bytes[0 .. 100])
+		if(v != 0) iszero = false;
+
+	assert( iszero );
+	assert( ptr !is null );
+
+	allocator.free(ptr);
+	allocator.free(bytes);
+}

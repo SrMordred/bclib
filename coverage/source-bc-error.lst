@@ -1,0 +1,12 @@
+       |module bc.error;
+       |
+       |import bc.io : print;
+       |
+       |@trusted
+       |void panic(Values...)(Values values)
+       |{
+       |        import core.stdc.stdlib : exit;
+0000000|        print(values);
+0000000|        assert(0);
+       |}
+source\bc\error.d is 0% covered

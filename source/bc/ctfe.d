@@ -1,6 +1,6 @@
 module bc.ctfe;
 
-struct Code(alias int SIZE)
+struct StringBuilder(alias int SIZE)
 {
 	char[SIZE] ptr;
 	size_t length;

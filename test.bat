@@ -1,0 +1,1 @@
+dub build --compiler=dmd --arch=x86_64 --config=config_test
