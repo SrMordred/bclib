@@ -441,6 +441,13 @@ unittest{
 
 	}
 
+	{
+		auto a = Box!(int[])();
+		a.reserve(10);
+		assert( a.capacity == 10, "box.reserve check value" );
+		assert( a.ptr !is null , "reserved box must have a valid pointer" );
+	}
+
 	//{
 		
 	//	int* ptr = cast(int*)default_alloc.malloc( 4 );
