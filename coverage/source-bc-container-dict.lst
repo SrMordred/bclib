@@ -1,8 +1,8 @@
        |module bc.container.dict;
        |
-       |private import bc.memory : default_alloc;
+       |private import bc.memory : default_allocator;
        |
-       |struct Dict( Key, Value, alias Allocator = default_alloc )
+       |struct Dict( Key, Value, alias Allocator = default_allocator )
        |{
        |        import bc.memory : Box;
        |

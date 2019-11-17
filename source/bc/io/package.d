@@ -5,3 +5,8 @@ public:
 
 
 import core.stdc.stdlib : exit;
+
+void stdoutFlush(){
+	import core.stdc.stdio;
+	stdout.fflush();
+}

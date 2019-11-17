@@ -5,4 +5,9 @@
        |
        |
        |import core.stdc.stdlib : exit;
-source\bc\io\package.d has no code
+       |
+       |void stdoutFlush(){
+       |        import core.stdc.stdio;
+0000000|        stdout.fflush();
+       |}
+source\bc\io\package.d is 0% covered

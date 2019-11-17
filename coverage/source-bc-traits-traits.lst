@@ -98,10 +98,13 @@
        |        enum isBCArray = false;
        |}
        |
+       |enum hasSlice( T ) = is( typeof( T.init[] ));
+       |
+       |
        |template isArray( T )
        |{
        |    import std.traits : _isArray = isArray;
-       |    static if( _isArray!T || isBCArray!T )
+       |    static if( _isArray!T  )
        |        enum isArray = true;
        |    else
        |        enum isArray = false;

@@ -18,7 +18,7 @@
        |            else
        |            {
        |                import core.stdc.stdio : printf;
-0000000|                printf("%.*s", value.length, value.ptr);
+     21|                printf("%.*s", value.length, value.ptr);
        |                //TODO: stdout bug
        |                //fwrite( value.ptr, 1 , 9, stdout );   
        |            }
@@ -27,4 +27,4 @@
        |}
        |
        |static Stdout stdout;
-source\bc\io\stdout.d is 0% covered
+source\bc\io\stdout.d is 100% covered

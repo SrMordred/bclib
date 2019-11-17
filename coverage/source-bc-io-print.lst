@@ -2,7 +2,8 @@
        |
        |import bc.io.stdout : stdout;
        |
-       |void formatter( alias IO = stdout, Values... )( auto ref Values values )
+       |@trusted
+       |void format( alias IO = stdout, Values... )( auto ref Values values )
        |{
        |        static foreach(value ; values)
        |        {{
@@ -18,36 +19,36 @@
        |                }
        |                else static if( isAny!( Type, string, String, char[] ) )
        |                {
-0000000|                        IO.put( value[0 .. $] );
+      9|                        IO.put( value[0 .. $] );
        |                }
        |                else static if( is(Type == struct) )
        |                {
-       |                        formatter!IO( "{ \"__type\": \"", Type.stringof, "\", ");
+      1|                        format!IO( "{ \"__type\": \"", Type.stringof, "\", ");
        |                        static if( Type.tupleof.length )
        |                        {
        |                                static foreach( index ; 0 .. Type.tupleof.length-1 )
        |                                {{
        |                                alias FieldType = typeof(Type.tupleof[index]);
        |
-       |                                formatter!IO('"', Type.tupleof[index].stringof ,"\": ");
+       |                                format!IO('"', Type.tupleof[index].stringof ,"\": ");
        |
        |                                static if( is( FieldType == string ) )
-       |                                        formatter!IO('"', value.tupleof[index], "\", " );       
+       |                                        format!IO('"', value.tupleof[index], "\", " );  
        |                                else
-       |                                        formatter!IO(value.tupleof[index], ", " );      
+       |                                        format!IO(value.tupleof[index], ", " ); 
        |                                
        |                                }}
        |
        |                                alias FieldType = typeof(Type.tupleof[$-1]);
        |
-       |                        formatter!IO('"', Type.tupleof[$-1].stringof ,"\": ");
+      1|                        format!IO('"', Type.tupleof[$-1].stringof ,"\": ");
        |
        |                        static if( is( FieldType == string ) )
-       |                                formatter!IO('"', value.tupleof[$-1], "\"" );   
+       |                                format!IO('"', value.tupleof[$-1], "\"" );      
        |                        else
-       |                                formatter!IO(value.tupleof[$-1] );      
+      1|                                format!IO(value.tupleof[$-1] ); 
        |                        }
-       |                        formatter!IO('}');
+      1|                        format!IO('}');
        |                        
        |                }
        |                else static if(is(Type == bool))
@@ -56,14 +57,14 @@
        |            }
        |            else static if( isArray!Type )
        |            {
-       |                IO.put("[");
-       |                if( value.length )
+      1|                IO.put("[");
+      1|                if( value.length )
        |                {
-       |                        foreach( i ; 0 .. value.length - 1 )
-       |                                formatter!IO( value[i] , ", " );
-       |                        formatter!IO( value[$-1] );
+      9|                        foreach( i ; 0 .. value.length - 1 )
+      2|                                format!IO( value[i] , ", " );
+      1|                        format!IO( value[$-1] );
        |                }
-       |                IO.put("]");
+      1|                IO.put("]");
        |            }
        |            else
        |            {
@@ -90,18 +91,19 @@
        |
        |                import core.stdc.stdio : sprintf;  
        |                //316, maybe the max char possible (double.max)
-0000000|                char[512] tmp;
+     10|                char[512] tmp;
        |                
-0000000|                size_t length = sprintf(tmp.ptr, format , value );
-0000000|                        IO.put( tmp[0 .. length] );
+     10|                size_t length = sprintf(tmp.ptr, format , value );
+     10|                        IO.put( tmp[0 .. length] );
        |            }
        |        }}
        |}
        |
+       |@trusted
        |void print( Values... )( auto ref Values values )
        |{
        |        import std.functional : forward;
-0000000|        formatter!(stdout)(forward!values);
-0000000|        formatter!(stdout)('\n');
+      3|        format!(stdout)(forward!values);
+      3|        format!(stdout)('\n');
        |}
-source\bc\io\print.d is 0% covered
+source\bc\io\print.d is 100% covered

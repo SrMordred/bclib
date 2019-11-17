@@ -1,5 +1,5 @@
        |/++
-       |        This module provides a basic allocator that implements `malloc, calloc and free.`
+       |        This module provides a basic allocator that implements `malloc and free.`
        |
        |        Also set a global variable called `default_allocator` that is used as the default allocator for 
        |        all the lib.    
@@ -9,12 +9,16 @@
        |        struct IAllocator
        |        {
        |                void* malloc(size_t);
-       |                void* calloc(size_t);
        |                void free(void*);
        |        }
+       |
+       |        To use property Allocator in `bclib` you must set allocator to be static variables. 
+       |        All structures use the allocators as simple `alias`, so if you point to a stack local allocator, it will lost the
+       |        frame pointer and crash. 
+       |        The advantage is that structs don't have to store the allocator.
        |        ---
        |+/
-       |module bc.memory.allocator;
+       |module bc.memory.allocator.default_allocator;
        |
        |///
        |unittest{
@@ -45,16 +49,13 @@
       1|        log_allocator.free(buffer);
        |}
        |
-       |static alloc_counter = 0;
-       |
        |/**
        |        Basic Default Allocator
        |*/
        |struct DefaultAllocator
        |{
        |    import core.stdc.stdlib : _malloc = malloc, _calloc = calloc, _free = free;
-       |
-       |    import core.stdc.stdio : printf;
+       |    enum stdcAllocator = true;
        |    /**
        |        Allocate memory
        |        Params: size = Size in bytes of memory to be allocated
@@ -62,55 +63,27 @@
        |        */
        |    void* malloc(size_t size)
        |    {
-     33|        auto ptr = _malloc(size);
-     33|        printf("#(%d) Alloc(%d)  -> %p\n", alloc_counter, size, ptr);
-     33|        alloc_counter++;
-     33|        return ptr;
+     45|        return _malloc(size);
        |    }
        |
-       |    /**
-       |        Allocate zeroed memory
-       |        Params: size = Size in bytes of memory to be allocated
-       |        Returns: Pointer to new allocated memory
-       |        */
-       |    void* calloc(size_t size)
-       |    {
-     22|        auto ptr = _calloc(1, size);
-     22|        printf("#(%d) Calloc(%d) -> %p\n", alloc_counter, size, ptr);
-     22|        alloc_counter++;
-     22|        return ptr;
-       |    }
-       |    
-       |    
        |    /**
        |        Free memory
        |        Params: ptr = Pointer to the memory address to be freed
        |        */
        |    void free(void* ptr)
        |    {
-     55|        --alloc_counter;
-     55|        printf("#(%d) Free()     -> %p\n", alloc_counter, ptr);
-     55|        _free(ptr);
+     34|        _free(ptr);
        |    }
        |}
        |
        |///global variable that are used by default on implementations that require an allocator.
        |public DefaultAllocator default_allocator;
        |
-       |
        |unittest{
        |
       1|        DefaultAllocator allocator;
       1|        auto ptr = allocator.malloc(100);
-      1|        byte* bytes = cast(byte*)allocator.calloc(100);
-      1|        bool iszero = true;
-    303|        foreach(v ; bytes[0 .. 100])
-    100|                if(v != 0) iszero = false;
-       |
-      1|        assert( iszero );
       1|        assert( ptr !is null );
-       |
       1|        allocator.free(ptr);
-      1|        allocator.free(bytes);
        |}
-source\bc\memory\allocator.d is 93% covered
+source\bc\memory\allocator\default_allocator.d is 86% covered

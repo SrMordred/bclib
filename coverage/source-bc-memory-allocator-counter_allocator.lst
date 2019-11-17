@@ -1,0 +1,20 @@
+       |module bc.memory.allocator.counter_allocator;
+       |
+       |import bc.memory : default_allocator;
+       |
+       |struct CounterAllocator( alias Allocator = default_allocator )
+       |{
+       |        size_t counter = 0;
+       |        void* malloc(size_t size)
+       |    {
+     27|        ++counter;
+     27|        return Allocator.malloc(size);
+       |    }
+       |
+       |    void free(void* ptr)
+       |    {
+     27|        --counter;
+     27|        Allocator.free(ptr);
+       |    }
+       |}
+source\bc\memory\allocator\counter_allocator.d is 100% covered

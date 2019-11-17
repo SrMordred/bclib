@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>http://127.0.0.1/index.html</loc></url>
 <url><loc>http://127.0.0.1/bc/memory/allocator.html</loc></url>
-<url><loc>http://127.0.0.1/bc/memory/allocator/default_alloc.html</loc></url>
+<url><loc>http://127.0.0.1/bc/memory/allocator/default_allocator.html</loc></url>
 <url><loc>http://127.0.0.1/bc/memory/allocator/DefaultAllocator.html</loc></url>
 <url><loc>http://127.0.0.1/bc/memory/allocator/DefaultAllocator.calloc.html</loc></url>
 <url><loc>http://127.0.0.1/bc/memory/allocator/DefaultAllocator.free.html</loc></url>

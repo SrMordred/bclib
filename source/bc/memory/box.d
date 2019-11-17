@@ -1,41 +1,9 @@
 module bc.memory.box;
 
-import bc.memory.allocator : default_alloc;
+import bc.memory : default_allocator;
 import bc.error : panic;
 
-//struct SafePtr( Type )
-//{
-//	Type* __ptr;
-
-//	ref opUnary( string op: "*")(string file = __FILE__, int line = __LINE__)
-//	{
-//		import bc.error : panic;
-//		if( __ptr !is null ) return *__ptr;
-//		panic( "Dereferencing from null pointer in ",file, ": ", line);
-//		assert(0);
-//	}
-
-//	bool opCast()
-//	{
-//		return __ptr !is null;
-//	}
-
-//	auto match( alias SomeFunction, alias NoneFunction )()
-//	{
-//		if( __ptr !is null )
-//			SomeFunction( __ptr );
-//		else
-//			NoneFunction();
-//	}
-
-//}
-
-//void safePtr( Type )( Type* ptr )
-//{
-//	return SafePtr!Type(ptr);
-//}
-
-struct Box(Type, alias TAllocator = default_alloc)
+struct Box(Type, alias TAllocator = default_allocator)
 {
 	import std.traits : isArray, Select, Unqual;
 	import std.range : ElementType;
@@ -52,36 +20,38 @@ struct Box(Type, alias TAllocator = default_alloc)
 	this(Type value)
 	{
 		import std.algorithm : moveEmplace, moveEmplaceAll;
-		import bc.memory : malloc, moveTo;
+		import bc.memory : alloc, moveTo;
 
 		import std.traits : ReturnType;
 
 		static if( IsArray )
 		{
-			__ptr = malloc!(Type, Allocator)( value.length );
+			__ptr = alloc!(Type, Allocator)( value.length );
 			value.copyTo( __ptr );
 		}
 		else
 		{
-			__ptr = malloc!(Type, Allocator);
+			__ptr = alloc!(Type, Allocator);
 			value.moveTo( *__ptr );			
 		}
 	}
 
 	this(ref Box other)
 	{
-		import bc.memory : malloc, copyTo;
+		import bc.memory : alloc, copyTo;
 
 		if( other )
 		{
 			static if( IsArray )
 			{
-				__ptr = malloc!( Type, Allocator )( other.capacity );
-				other.__ptr.copyTo( __ptr );
+				import bc.io;
+				print(other);
+				__ptr = alloc!( Type, Allocator )( other.capacity );
+				//other.__ptr.copyTo( __ptr );
 			}
 			else
 			{
-				__ptr = malloc!( Type, Allocator )();
+				__ptr = alloc!( Type, Allocator )();
 				other.__ptr.copyTo( __ptr );
 			}	
 		}
@@ -89,7 +59,7 @@ struct Box(Type, alias TAllocator = default_alloc)
 
 	void opAssign( Self : Box )( auto ref Self other )
 	{
-		import bc.memory : malloc, copyTo;
+		import bc.memory : alloc, copyTo;
 
 		free();
 
@@ -97,23 +67,21 @@ struct Box(Type, alias TAllocator = default_alloc)
 		{
 			static if( IsArray )
 			{
-				__ptr = malloc!( Type, Allocator )( other.capacity );
+				__ptr = alloc!( Type, Allocator )( other.capacity );
 				other.__ptr.copyTo( __ptr );
 			}
 			else
 			{
-				__ptr = malloc!( Type, Allocator )();
+				__ptr = alloc!( Type, Allocator )();
 				other.__ptr.copyTo( __ptr );
 			}	
 		}
 	}
 
-	static fromPtr( ref DataType ptr )
+	void fromPtr( ref DataType ptr )
 	{
-		Box!( Type, Allocator ) tmp;
-		tmp.__ptr = ptr;
+		__ptr = ptr;
 		ptr = null;
-		return tmp;
 	}
 
 	~this()
@@ -123,7 +91,7 @@ struct Box(Type, alias TAllocator = default_alloc)
 
 	void free()
 	{
-		import bc.memory : _free = free, destructor;
+		import bc.memory : dealloc, destructor;
 		if ( this )
 		{
 			static if(IsArray)
@@ -131,19 +99,31 @@ struct Box(Type, alias TAllocator = default_alloc)
 			else
 				destructor(*__ptr);
 
-			_free!(Allocator)(__ptr);
+			dealloc!(Allocator)(__ptr);
 		}
 	}
 
 	static if( IsArray )
 	{
-		import bc.memory : calloc, copyTo, _free = free;
+		import bc.memory : allocInit,dealloc, copyTo;
 		void reserve( size_t size )
 		{
 			if( size > __ptr.length )
 			{
-				//TODO: every calloc call can be replaced with malloc call if the type don´t have indirections
-				auto tmp = calloc!(Type, Allocator)( size );
+			//	//TODO: every calloc call can be replaced with alloc call if the type don´t have indirections
+
+				auto tmp = allocInit!(Type, Allocator)( size );
+				__ptr.copyTo( tmp );
+				free();
+				__ptr = tmp;
+			}
+		}
+
+		void reserveInit( size_t size )
+		{
+			if( size > __ptr.length )
+			{
+				auto tmp = allocInit!(Type, Allocator)( size );
 				__ptr.copyTo( tmp );
 				free();
 				__ptr = tmp;
@@ -173,7 +153,7 @@ struct Box(Type, alias TAllocator = default_alloc)
 		@safe
 		auto opSlice(size_t start, size_t end) {
 			if( !this ) panic("Box[start .. end] slicing an empty box!");
-			if( start >= capacity || end > capacity) panic("Box[start .. end] os out of bounds!");
+			if( start >= capacity || end > capacity) panic("Box[",start," .. ",end,"] is out of bounds!");
 
 			return __ptr[start .. end]; 
 		}
@@ -208,7 +188,8 @@ struct Box(Type, alias TAllocator = default_alloc)
 	@system
 	auto ptr()
 	{
-		return __ptr;
+		static if(IsArray) return __ptr.ptr;
+		else return __ptr;
 	}
 	/*
 		Change box ownership
@@ -245,61 +226,75 @@ struct Box(Type, alias TAllocator = default_alloc)
 		{
 			return NoneFunction();
 		}
-
 	}
 
 }
 
-struct box
+struct box(alias Allocator = default_allocator)
 {
-	static opCall(Type, alias Allocator = default_alloc)(auto ref Type value)
+	static opCall( Type )(auto ref Type value)
 	{
 		import std.functional : forward;
 		return Box!(Type, Allocator)(forward!value);	
 	}
-	static fromPtr(Type, alias Allocator = default_alloc)(ref Type* value)
+
+	static fromPtr( Type )(ref Type* value)
 	{
-		return Box!(Type, Allocator).fromPtr( value );
+		Box!(Type, Allocator) box;
+		box.fromPtr( value );
+		return box;
 	}
-	static fromPtr(Type, alias Allocator = default_alloc)(ref Type[] value)
+
+	static fromPtr( Type )(ref Type[] value)
 	{
-		return Box!(Type[], Allocator).fromPtr( value );
+		Box!(Type[], Allocator) box;
+		box.fromPtr( value );
+		return box;
 	}
 }
 
 unittest{
 
-	
-	{ Box!int box_int = Box!int(123); }
-	{ Box!int box_int = box(123); }
-	{ auto box_int = box(123); } 
-	{ auto box_int = Box!(int, default_alloc)(123); } 
+	import bc.io;
+	import core.stdc.stdio;
+	import core.stdc.stdlib;
+
+	import bc.memory : CounterAllocator;
+	import bc.io : print;
+
+	static CounterAllocator!() counter_allocator;
+
+	alias _Box(T) = Box!(T, counter_allocator);
+
+		
+	{ _Box!int box_int = _Box!int(123); }
+	{ _Box!int _box_int = box!counter_allocator(123); }
+	{ auto _box_int = box!counter_allocator(123); } 
 
 	import std.array : staticArray;
 
 	auto array_ptr   = [1,2,3].staticArray;
 	auto array_slice = array_ptr[];
 
-	{ Box!(int[]) box_int = Box!(int[])( array_slice ); }
-	{ Box!(int[]) box_int = box( array_slice ); }
-	{ auto box_int = box( array_slice ); } 
-	{ auto box_int = Box!(int[], default_alloc)( array_slice ); } 
+	{ _Box!(int[]) _box_int = _Box!(int[])( array_slice ); }
+	{ _Box!(int[]) _box_int = box!counter_allocator( array_slice ); }
+	{ auto _box_int = box!counter_allocator( array_slice ); } 
 
 	{
-		auto a = box(123);
+		auto a = box!counter_allocator(123);
 		auto b = a;
 		*a = 100;
 
 		assert(cast(bool)a, "b = a, is a copy, not move.");
 		assert(cast(bool)b, "b = a, is a copy, not move.");
 
-		assert( *a != *b, "a and b boxes are have different values" );
+		assert( *a != *b, "a and b _boxes are have different values" );
 		assert( a.ptr != b.ptr, "a and b have different pointers" );
 	}
 
 	{
-		auto a = box(100);
-		auto b = box(200);
+		auto a = box!counter_allocator(100);
+		auto b = box!counter_allocator(200);
 
 		a = b;
 
@@ -310,20 +305,20 @@ unittest{
 		assert( a.ptr != b.ptr, "a and b have different pointers" );
 	}
 	{
-		auto ptr = cast(int*) default_alloc.malloc(4);
+		auto ptr = cast(int*) counter_allocator.malloc(4);
 		*ptr = 100;
-		auto a = box.fromPtr( ptr );
+		auto a = box!counter_allocator.fromPtr( ptr );
 
 		assert(ptr is null, "box.fromPtr must move the pointer to gain ownership");
 		assert(*a == 100, "box value must be from the pointer");
 	}
 	{
-		auto x = box(100);
+		auto x = box!counter_allocator(100);
 		x.free();
 		assert(x.ptr is null, "free() testing");
 	}
 	{
-		auto a = box(100);
+		auto a = box!counter_allocator(100);
 		auto b = a.move();
 
 		assert( cast(bool)a == false, "a was moved" );
@@ -331,7 +326,7 @@ unittest{
 		assert( *b == 100 , "b have the value" );
 	}
 	{
-		auto a = box(100);
+		auto a = box!counter_allocator(100);
 		auto ptr = a.releasePtr();
 		assert( cast(bool)a == false, "a must be empty" );
 		assert( *ptr == 100);
@@ -339,7 +334,7 @@ unittest{
 		typeof(a).Allocator.free(ptr);
 	}
 	{
-		auto x = box(123);
+		auto x = box!counter_allocator(123);
 
 		auto right_value = x.match!(
 			v => v,
@@ -366,20 +361,20 @@ unittest{
 	auto arr2 = buffer2[];
 
 	{
-		auto a = box(arr1);
+		auto a = box!counter_allocator(arr1);
 		auto b = a;
 		a[0] = 100;
 
 		assert(cast(bool)a, "b = a, is a copy, not move.");
 		assert(cast(bool)b, "b = a, is a copy, not move.");
 
-		assert( a[0] != b[0], "a and b boxes are have different values" );
+		assert( a[0] != b[0], "a and b _boxes are have different values" );
 		assert( a.ptr != b.ptr, "a and b have different pointers" );
 	}
 
 	{
-		auto a = box(arr1);
-		auto b = box(arr2);
+		auto a = box!counter_allocator(arr1);
+		auto b = box!counter_allocator(arr2);
 
 		a = b;
 
@@ -387,14 +382,14 @@ unittest{
 		assert(cast(bool)b, "a and b have values");
 
 		assert( *a == *b, "a and b have the same value" );
-		assert( a.ptr.ptr != b.ptr.ptr, "a and b have different pointers" );
+		assert( a.ptr != b.ptr, "a and b have different pointers" );
 	}
 	{
-		auto ptr = (cast(int*) default_alloc.malloc(int.sizeof * 3))[0 .. 3];
+		auto ptr = (cast(int*) counter_allocator.malloc(int.sizeof * 3))[0 .. 3];
 		ptr[0] = 100;
 		ptr[1] = 200;
 		ptr[2] = 300;
-		auto a = box.fromPtr( ptr );
+		auto a = box!counter_allocator.fromPtr( ptr );
 
 		assert(ptr is null, "box.fromPtr must move the pointer to gain ownership");
 		assert(a[0] == 100, "box value must be from the pointer");
@@ -402,12 +397,12 @@ unittest{
 		assert(a[2] == 300, "box value must be from the pointer");
 	}
 	{
-		auto x = box(arr1);
+		auto x = box!counter_allocator(arr1);
 		x.free();
 		assert(x.ptr is null, "free() testing");
 	}
 	{
-		auto a = box(arr1);
+		auto a = box!counter_allocator(arr1);
 		auto b = a.move();
 
 		assert( cast(bool)a == false, "a was moved" );
@@ -415,7 +410,7 @@ unittest{
 		assert( b[0] == 1 , "b have the value" );
 	}
 	{
-		auto a = box(arr1);
+		auto a = box!counter_allocator(arr1);
 		auto ptr = a.releasePtr();
 		assert( cast(bool)a == false, "a must be empty" );
 		assert( ptr[0] == 1);
@@ -423,11 +418,14 @@ unittest{
 		typeof(a).Allocator.free(ptr.ptr);
 	}
 	{
-		auto x = box(arr1);
+		auto x = box!counter_allocator(arr1);
 
 		auto right_value = x.match!(
 			v => v,
-			() => [],
+			(){
+				int[] tmp;
+				return tmp;
+			},
 		);
 		assert(right_value == arr1, "box.match some value" );
 
@@ -435,9 +433,12 @@ unittest{
 
 		right_value = x.match!(
 			v => v,
-			() => [],
+			(){
+				int[] tmp;
+				return tmp;
+			},
 		);
-		assert(right_value == [], "box.match none value" );
+		assert(right_value.length == 0, "box.match none value" );
 
 	}
 
@@ -448,101 +449,18 @@ unittest{
 		assert( a.ptr !is null , "reserved box must have a valid pointer" );
 	}
 
-	//{
-		
-	//	int* ptr = cast(int*)default_alloc.malloc( 4 );
-	//	auto box_int = box.fromPtr( ptr );
-	//	assert( ptr is null , "Box.fromPtr must move to own the pointer" );
-	//}
+	{
+		auto a = box!counter_allocator(arr1);
+		auto slice = a[];
+		slice[1] = 123;
+		assert( a[1] == 123, "Slice is a pointer to the real value" );
 
-	//auto box_int = box(123);
-	//auto ptr_int = box_int.ptr();
-	//assert( *ptr_int == 123, "Box value don't match with ptr() captured value" );
-	//assert( *box_int == 123, "Dereferencing box must have the right value" );
-	//box_int.match!(
-	//	v => {},
-	//	() => { assert(false, "Box.match!() must return a value when there is a value inside"); }
-	//);
-	//*ptr_int = 321;
-	//auto ptr_int2 = box_int.releasePtr();
-	//assert( *ptr_int == 321, "Box value don't match with ptr() captured value" );
-	//import bc.io;
-	//auto box_again = box.fromPtr( ptr_int2 );
-	//box_again.free();
+		slice = a[0 ..2];
+		assert( slice.length == 2 , "Slice length check" );
+	}
 
-	//box_int.free();
+    print("Allocation Counter: ", counter_allocator.counter);
+	assert( counter_allocator.counter == 0 , "Allocations must be 0 at the end" );
 
-	//box_int.match!(
-	//	(v){ 
-	//		assert(false, "Box.match!() must not return a value when is null"); 
-	//	}, 
-	//	(){}
-	//);
-
-	//box_int = box(123);
-	//if( !box_int ) assert(false, "if(Box) must return true is the pointer is not null");
-
-	//auto box2_int = box_int.move();
-
-
-	//assert( cast(bool)box2_int == true, "this Box must have a value from another moved box" );
-	//assert( *box2_int == 123 , "this Box value must be the same as the moved box" );
-	//assert( cast(bool)box_int == false , "the moved Box must be null" );
-
-	//auto ptr2_int = box2_int.releasePtr();
-	//scope(exit) default_alloc.free(ptr2_int);
-	//assert( *ptr2_int == 123, "Pointer must have the value of the released Box" );
-	//assert( cast(bool)box2_int == false, "Box must have null ptr after being released" );
-
-	
-
-
-	//auto a = box(10);
-	//auto b = a;
-	//*a = 11;
-	//assert( *a != *b, "box_a = box_b must be a copy" );
-
-	//int[] ptr = (cast(int*)default_alloc.malloc( 4 * 3 ))[0 .. 3];
-	//scope(exit) default_alloc.free( ptr.ptr );
-	//ptr[0] = 1;
-	//ptr[1] = 2;
-	//ptr[2] = 3;
-
-	//auto box_slice = box( ptr );
-	//assert( box_slice[] == ptr, "Box.get() return the inner slice, and must be equal to that." );
-	//box_slice.reserve(10);
-	//assert( box_slice.capacity == 10, "Box slice must have capacity of reserved value" );
-	
-	//auto slice = *box_slice;
-	//slice[1] = 100;
-	//assert( box_slice.ptr()[1] == 100 , "Box.get() return the inner slice, pointing to the same ptr");
-	//assert( box_slice.ptr()[2] == 3 , "Box.ptr[index] return a pointer to the inner slice position" );
-	//import std.array: staticArray;
-	//assert( box_slice[0 .. 3] == [1,100,3].staticArray()[] , "Box.get(start, end) return a slice" );
-
-	//box_slice.match!(
-	//	(slice){},
-	//	() { assert(false, "BoxSlice.match!() must return a value when the slice capacity is > 0"); }
-	//);
-
-	//auto slice_ptr = box_slice.releasePtr();
-
-	//box_slice.match!(
-	//	(slice){ assert(false, "BoxSlice.match!() must not return a value when the slice capacity is == 0"); },
-	//	() {}
-	//);
-
-	//auto box2_slice = box.fromPtr( slice_ptr );
-	//auto box_copy = box2_slice;
-
-	//box2_slice.ptr()[0] = 100;
-	//assert( box2_slice[0] != box_copy[0], "Assigned Box slice must be a copy" );
-
-	//auto moved_box = box2_slice.move();
-	//assert( cast(bool)box2_slice == false, "Moved from Box must be null" );
-	//assert( cast(bool)moved_box == true, "Moved to Box must be have values" );
-	//assert( moved_box.capacity == 10, "Moved box must have the same capacity (because they have the same values)");
-
-	//moved_box.free();
 
 }

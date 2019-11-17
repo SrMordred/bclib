@@ -2,7 +2,8 @@ module bc.io.print;
 
 import bc.io.stdout : stdout;
 
-void formatter( alias IO = stdout, Values... )( auto ref Values values )
+@trusted
+void format( alias IO = stdout, Values... )( auto ref Values values )
 {
 	static foreach(value ; values)
 	{{
@@ -22,32 +23,32 @@ void formatter( alias IO = stdout, Values... )( auto ref Values values )
 		}
 		else static if( is(Type == struct) )
 		{
-			formatter!IO( "{ \"__type\": \"", Type.stringof, "\", ");
+			format!IO( "{ \"__type\": \"", Type.stringof, "\", ");
 			static if( Type.tupleof.length )
 			{
 				static foreach( index ; 0 .. Type.tupleof.length-1 )
 				{{
 	    			alias FieldType = typeof(Type.tupleof[index]);
 
-	    			formatter!IO('"', Type.tupleof[index].stringof ,"\": ");
+	    			format!IO('"', Type.tupleof[index].stringof ,"\": ");
 
 	    			static if( is( FieldType == string ) )
-	    				formatter!IO('"', value.tupleof[index], "\", " );	
+	    				format!IO('"', value.tupleof[index], "\", " );	
 	    			else
-	    				formatter!IO(value.tupleof[index], ", " );	
+	    				format!IO(value.tupleof[index], ", " );	
 	    			
 				}}
 
 				alias FieldType = typeof(Type.tupleof[$-1]);
 
-    			formatter!IO('"', Type.tupleof[$-1].stringof ,"\": ");
+    			format!IO('"', Type.tupleof[$-1].stringof ,"\": ");
 
     			static if( is( FieldType == string ) )
-    				formatter!IO('"', value.tupleof[$-1], "\"" );	
+    				format!IO('"', value.tupleof[$-1], "\"" );	
     			else
-    				formatter!IO(value.tupleof[$-1] );	
+    				format!IO(value.tupleof[$-1] );	
 			}
-			formatter!IO('}');
+			format!IO('}');
 			
 		}
 		else static if(is(Type == bool))
@@ -60,8 +61,8 @@ void formatter( alias IO = stdout, Values... )( auto ref Values values )
 	    	if( value.length )
 	    	{
 	    		foreach( i ; 0 .. value.length - 1 )
-	    			formatter!IO( value[i] , ", " );
-	    		formatter!IO( value[$-1] );
+	    			format!IO( value[i] , ", " );
+	    		format!IO( value[$-1] );
 	    	}
 	    	IO.put("]");
 	    }
@@ -98,9 +99,10 @@ void formatter( alias IO = stdout, Values... )( auto ref Values values )
 	}}
 }
 
+@trusted
 void print( Values... )( auto ref Values values )
 {
 	import std.functional : forward;
-	formatter!(stdout)(forward!values);
-	formatter!(stdout)('\n');
+	format!(stdout)(forward!values);
+	format!(stdout)('\n');
 }

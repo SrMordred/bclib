@@ -1,15 +1,15 @@
 module bc.string;
 
-import bc.memory : default_alloc;
+import bc.memory : default_allocator;
 
 //TODO: want to make \0 ended strings also
 //TODO: dont have code to shrink strings (do i need?)
 
-struct TString(alias Allocator = default_alloc)
+struct TString(alias Allocator = default_allocator)
 {
 	//import bc.memory : Box, box;
 
-	//Box!(string, default_alloc) ptr;
+	//Box!(string, default_allocator) ptr;
 
 	//size_t length(){ return ptr.capacity; }
 
@@ -59,10 +59,10 @@ struct TString(alias Allocator = default_alloc)
 
 }
 
-alias String = TString!(default_alloc);
+alias String = TString!(default_allocator);
 
 
-//struct TString(alias allocator = default_alloc)
+//struct TString(alias allocator = default_allocator)
 //{
 //	import bc.memory : Box;
 

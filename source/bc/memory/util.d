@@ -1,16 +1,15 @@
 module bc.memory.util;
 
-import bc.memory.allocator : default_alloc;
+import bc.memory : default_allocator;
 
-auto malloc(Type, alias Allocator = default_alloc)(const size_t size = 1)
+auto alloc(Type, alias Allocator = default_allocator)(const size_t size = 1)
 {
-    import std.traits : isArray;
-    import std.range : ElementType;
+    import bc.traits : isArray, ArrayElement;
 
     static if (isArray!Type)
     {
-        alias Element = typeof(Type.init[0]);
-        return (cast(Element*) Allocator.malloc(Element.sizeof * size))[0 .. size];
+        alias Element = ArrayElement!Type;
+        return (cast(Element*) Allocator.malloc( Element.sizeof * size))[0 .. size];
     }
     else
     {
@@ -18,23 +17,46 @@ auto malloc(Type, alias Allocator = default_alloc)(const size_t size = 1)
     }
 }
 
-auto calloc(Type, alias Allocator = default_alloc)(const size_t size = 1)
+auto allocInit(Type, alias Allocator = default_allocator)(const size_t size = 1)
 {
     import std.traits : isArray;
     import std.range : ElementType;
 
+    // TODO: now i´m setting things to 0. But allocInit must set values to .init values ( zero out with memset if struct is isZeroed)
+
     static if (isArray!Type)
     {
         alias Element = typeof(Type.init[0]);
-        return (cast(Element*) Allocator.calloc(Element.sizeof * size))[0 .. size];
+        static if( is(typeof( Allocator.stdcAllocator ) ) )
+        {
+            import core.stdc.stdlib : calloc;
+            return (cast(Element*) calloc( size , Element.sizeof ))[0 .. size];
+        }
+        else
+        {
+            
+            auto ptr = (cast(Element*) Allocator.malloc(Element.sizeof * size) )[0 .. size];
+            ptr.memZero;
+            return ptr;
+        }
     }
     else
     {
-        return cast(Type*) Allocator.calloc(Type.sizeof);
+        static if( is( typeof( Allocator.stdcAllocator ) ) )
+        {
+            import core.stdc.stdlib : calloc;
+            return cast(Type*) calloc( 1, Type.sizeof );
+        }
+        else
+        {
+            auto ptr = cast(Type*) Allocator.malloc(Type.sizeof);
+            ptr.memZero;
+            return ptr;
+        }
     }
 }
 
-void free(alias Allocator = default_alloc, Type)(ref Type value)
+void dealloc(alias Allocator = default_allocator, Type)(ref Type value)
 {
     import std.traits : isArray, isPointer, PointerTarget, Unqual, hasElaborateDestructor;
     import bc.error : panic;
@@ -61,39 +83,40 @@ void free(alias Allocator = default_alloc, Type)(ref Type value)
         panic("'free' argument must be a pointers or an array.");
 }
 
-void destructor(Type)(ref Type value)
+void destructor(Type)(auto ref Type value)
 {
-    import bc.traits : hasElaborateDestructor;
+    import bc.traits : hasElaborateDestructor, isArray, ArrayElement;
 
-    static if( hasElaborateDestructor!Type )
+    static if( isArray!Type )
     {
-        value.__xdtor;
+        static if( hasElaborateDestructor!(ArrayElement!Type) )
+        {
+            foreach(ref val ; value)
+                val.__xdtor;
+        }        
+    }
+    else
+    {
+        static if( hasElaborateDestructor!Type )
+        {
+            value.__xdtor;
+        }    
     }
 }
 
-void destructor(Type)(Type[] value)
+void memZero(Type)(auto ref Type value)
 {
-    import bc.traits : hasElaborateDestructor;
+    import core.stdc.string : memset;
+    import bc.traits : isArray, ArrayElement;
 
-    static if( hasElaborateDestructor!Type )
+    static if( isArray!Type )
     {
-        foreach(ref val ; value)
-            val.__xdtor;
+        memset(value.ptr, 0, ArrayElement!(Type).sizeof * value.length);
     }
-}
-
-void memZero(Type)(ref Type value)
-{
-    import core.stdc.string : memset;
-
-    memset(&value, 0, Type.sizeof);
-}
-
-void memZero(Type)(Type[] slice)
-{
-    import core.stdc.string : memset;
-
-    memset(slice.ptr, 0, Type.sizeof * slice.length);
+    else
+    {
+        memset(&value, 0, Type.sizeof);
+    }
 }
 
 void copyTo(Type)(Type source, Type target)
@@ -101,11 +124,9 @@ void copyTo(Type)(Type source, Type target)
     import bc.traits : isArray, isPointer, ArrayElement, PointerTarget, Unqual;
     import core.stdc.string : memcpy;
 
-    alias CleanType = Unqual!(Type);
-
     static if( isArray!Type )
     {
-        memcpy(cast(CleanType*) target.ptr , cast(CleanType*) source.ptr, ArrayElement!Type.sizeof * source.length);
+        memcpy( target.ptr , source.ptr, ArrayElement!Type.sizeof * source.length);
     }
     else static if( isPointer!Type )
     {
@@ -123,6 +144,7 @@ void moveTo(Type, alias overlap = false)(ref Type* source, ref Type* target)
 {
     import bc.traits : hasIndirections;
     import core.stdc.string : memcpy, memmove;
+
 
     static if( !overlap )
         memcpy(target, source, Type.sizeof);
@@ -160,6 +182,7 @@ void moveTo(Type,alias overlap = false)(ref Type source, ref Type target)
 
     static if (hasIndirections!Type)
         memZero(source);
+
 }
 
 void assignAllTo(Type)(Type[] source, Type[] target)
